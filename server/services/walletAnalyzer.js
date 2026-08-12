@@ -74,10 +74,20 @@ export function analyzeWallet(rawData) {
     ? (biggestBag.currentValueUsd / totalCurrentValueUsd) * 100 
     : 0;
 
+  // Losing positions (prefer Jettons over native TON or official GRAM)
   const losingPositions = validPositions.filter(p => p.pnlStatus === 'loss');
   losingPositions.sort((a, b) => (a.estimatedPnlPercent || 0) - (b.estimatedPnlPercent || 0));
-  const biggestLoser = losingPositions.length > 0 ? losingPositions[0] : null;
+  
+  let biggestLoser = losingPositions.length > 0 ? losingPositions[0] : null;
+  const jettonLoser = losingPositions.find(p => {
+    const sym = (p.symbol || '').toUpperCase();
+    return sym !== 'TON' && sym !== 'GRAM';
+  });
+  if (jettonLoser) {
+    biggestLoser = jettonLoser;
+  }
 
+  // Winning positions
   const winningPositions = validPositions.filter(p => p.pnlStatus === 'profit');
   winningPositions.sort((a, b) => (b.estimatedPnlPercent || 0) - (a.estimatedPnlPercent || 0));
   const biggestWinner = winningPositions.length > 0 ? winningPositions[0] : null;
@@ -99,12 +109,10 @@ export function analyzeWallet(rawData) {
     totalPositionsCount: validPositions.length,
     losingPositionsCount: losingPositions.length,
     winningPositionsCount: winningPositions.length,
-    biggestBag: biggestBag ? {
-      ...biggestBag,
-      concentrationPercent: Math.round(biggestBagConcentration)
-    } : null,
+    biggestBag,
     biggestLoser,
     biggestWinner,
+    biggestBagConcentration,
     copiumMetrics,
     astrology,
     positions: validPositions

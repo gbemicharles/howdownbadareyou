@@ -257,7 +257,7 @@ export default function ResultCardModal({ roastData, onClose }) {
                   <span>{personality.title}</span>
                 </div>
 
-                {/* Metrics Summary List (Holdings / Est PnL / Best Bag / Worst Bag) */}
+                {/* Metrics Summary List (Holdings / Est PnL / Best Bag / Rekt Bag) */}
                 <div className="space-y-1 font-mono text-xs text-slate-300 pt-1">
                   
                   {/* Holdings with Hide Holdings Privacy Support */}
@@ -284,11 +284,11 @@ export default function ResultCardModal({ roastData, onClose }) {
                     </strong>
                   </div>
 
-                  {/* Worst Bag */}
+                  {/* Rekt Bag */}
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400 uppercase font-black text-[10px] w-20">Worst Bag:</span>
+                    <span className="text-slate-400 uppercase font-black text-[10px] w-20">Rekt Bag:</span>
                     <strong className="text-pink-400 font-extrabold">
-                      ${biggestLoser ? biggestLoser.symbol : 'GRAM'} {biggestLoser && biggestLoser.estimatedPnlPercent ? `(${biggestLoser.estimatedPnlPercent.toFixed(0)}%)` : ''}
+                      ${biggestLoser ? biggestLoser.symbol : 'REKT'} {biggestLoser && biggestLoser.estimatedPnlPercent ? `(${biggestLoser.estimatedPnlPercent.toFixed(0)}%)` : ''}
                     </strong>
                   </div>
 
