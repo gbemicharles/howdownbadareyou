@@ -18,18 +18,40 @@ const ROAST_VARIATIONS = [
   }
 ];
 
-export function generateRoasts(params) {
-  const {
-    walletAddress,
-    totalCurrentValueUsd,
-    estimatedPnlUsd,
-    downBadScore,
-    isProfitable,
-    levelText,
-    personalityTitle,
-    biggestBagSymbol,
-    biggestLoserSymbol
-  } = params;
+export function generateRoasts(analysisOrParams, personalityObj, scoreDataObj) {
+  let walletAddress = "";
+  let totalCurrentValueUsd = 0;
+  let estimatedPnlUsd = 0;
+  let downBadScore = 0;
+  let isProfitable = false;
+  let levelText = "";
+  let personalityTitle = "";
+  let biggestBagSymbol = "";
+  let biggestLoserSymbol = "";
+
+  if (personalityObj && scoreDataObj) {
+    // Called as: generateRoasts(analysis, scoreData.personality, scoreData)
+    walletAddress = analysisOrParams.walletAddress || "";
+    totalCurrentValueUsd = analysisOrParams.totalCurrentValueUsd || 0;
+    estimatedPnlUsd = analysisOrParams.estimatedPnlUsd || 0;
+    downBadScore = scoreDataObj.downBadScore || 0;
+    isProfitable = scoreDataObj.isProfitable || false;
+    levelText = scoreDataObj.levelText || "";
+    personalityTitle = personalityObj.title || "";
+    biggestBagSymbol = analysisOrParams.biggestBag?.symbol || "";
+    biggestLoserSymbol = analysisOrParams.biggestLoser?.symbol || "";
+  } else {
+    // Called with single params object
+    walletAddress = analysisOrParams.walletAddress || "";
+    totalCurrentValueUsd = analysisOrParams.totalCurrentValueUsd || 0;
+    estimatedPnlUsd = analysisOrParams.estimatedPnlUsd || 0;
+    downBadScore = analysisOrParams.downBadScore || 0;
+    isProfitable = analysisOrParams.isProfitable || false;
+    levelText = analysisOrParams.levelText || "";
+    personalityTitle = analysisOrParams.personalityTitle || (analysisOrParams.personality?.title || "");
+    biggestBagSymbol = analysisOrParams.biggestBagSymbol || analysisOrParams.biggestBag?.symbol || "";
+    biggestLoserSymbol = analysisOrParams.biggestLoserSymbol || analysisOrParams.biggestLoser?.symbol || "";
+  }
 
   let primaryRoast = "";
 
@@ -43,7 +65,7 @@ export function generateRoasts(params) {
     primaryRoast = `Surviving, but barely. You've avoided total annihilation so far, but holding $${biggestLoserSymbol || 'tokens'} shows you still have a soft spot for financial self-harm.`;
   }
 
-  const tweetText = generateTweetText(params);
+  const tweetText = generateTweetText({ downBadScore, isProfitable, levelText, personalityTitle, walletAddress });
 
   return {
     primaryRoast,
@@ -54,11 +76,11 @@ export function generateRoasts(params) {
 function generateTweetText(params) {
   const { downBadScore, isProfitable, levelText, personalityTitle, walletAddress } = params;
 
-  const addrShort = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
+  const addrShort = walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : "TON Wallet";
 
   if (isProfitable) {
     return `I just checked my TON wallet (${addrShort}) on How Down Bad Are You? 💀\n\nResult: ${levelText || 'PROFIT SURVIVOR'}\nPersonality: ${personalityTitle || 'SURVIVOR'}\n\nAm I actually winning? Check yours on Telegram 👇\nhttps://t.me/howdownbadareyoubot #TON #Web3`;
   }
 
-  return `I just checked my TON wallet (${addrShort}) on How Down Bad Are You? 💀\n\nResult: ${downBadScore}% DOWN BAD 😭\nPersonality: ${personalityTitle || 'BAG HOLDER'}\n\nRoast your financial decisions on Telegram 👇\nhttps://t.me/howdownbadareyoubot #TON #Web3`;
+  return `I just checked my TON wallet (${addrShort}) on How Down Bad Are You? 💀\n\nResult: ${downBadScore || 0}% DOWN BAD 😭\nPersonality: ${personalityTitle || 'BAG HOLDER'}\n\nRoast your financial decisions on Telegram 👇\nhttps://t.me/howdownbadareyoubot #TON #Web3`;
 }
