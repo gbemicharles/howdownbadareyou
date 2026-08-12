@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #07080c;
+  background-image: 
+    radial-gradient(at 15% 15%, rgba(255, 42, 133, 0.08) 0px, transparent 50%),
+    radial-gradient(at 85% 20%, rgba(139, 92, 246, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 80%, rgba(0, 242, 254, 0.06) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d0f17;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #252a3b;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #363d54;
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(16, 19, 28, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-panel-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+.glass-panel-hover:hover {
+  background: rgba(22, 26, 38, 0.85);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.glass-card-danger {
+  background: rgba(255, 42, 133, 0.05);
+  border: 1px solid rgba(255, 42, 133, 0.2);
+}
+
+.glass-card-success {
+  background: rgba(0, 230, 118, 0.05);
+  border: 1px solid rgba(0, 230, 118, 0.2);
+}
+
+.neon-text-pink {
+  text-shadow: 0 0 12px rgba(255, 42, 133, 0.5);
+}
+
+.neon-text-purple {
+  text-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
+}
+
+.neon-text-cyan {
+  text-shadow: 0 0 12px rgba(0, 242, 254, 0.5);
+}
+
+.neon-text-green {
+  text-shadow: 0 0 12px rgba(0, 230, 118, 0.5);
+}
+
+.neon-glow-pink {
+  box-shadow: 0 0 20px rgba(255, 42, 133, 0.25);
+}
+
+.neon-glow-purple {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
+}
+
+/* Cyber scanlines overlay for loading state */
+.cyber-scanlines {
+  background: linear-gradient(
+    rgba(18, 16, 26, 0) 50%, 
+    rgba(0, 0, 0, 0.3) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.03)
+  );
+  background-size: 100% 4px, 6px 100%;
+}
