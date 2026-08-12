@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { toPng, toBlob } from 'html-to-image';
+import { toBlob } from 'html-to-image';
+import { saveImageBlob } from '../utils/mobileDownload.js';
 import { X, Swords, Trophy, Skull, Share2, Loader2, Sparkles, Crown, Download, Copy, Check, Shuffle } from 'lucide-react';
 import { compareWalletsForDuel } from '../../server/services/duelEngine';
 import { getWalletRawData } from '../../server/services/tonProvider';
@@ -113,17 +114,13 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
     try {
       setIsGeneratingImg(true);
-      const dataUrl = await toPng(duelCardRef.current, {
+      const blob = await toBlob(duelCardRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: '#090a0f'
       });
 
-      const link = document.createElement('a');
-      link.download = `wallet-duel-${Date.now()}.png`;
-      link.href = dataUrl;
-      link.click();
-
+      await saveImageBlob(blob, `wallet-duel-${Date.now()}.png`);
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 3000);
     } catch (err) {

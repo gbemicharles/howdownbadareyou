@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { toPng, toBlob } from 'html-to-image';
+import { toBlob } from 'html-to-image';
+import { saveImageBlob } from '../utils/mobileDownload.js';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
   X, Download, Share2, Copy, Sparkles, Check, Loader2, 
@@ -81,17 +82,13 @@ export default function ResultCardModal({ roastData, onClose }) {
 
     try {
       setIsGenerating(true);
-      const dataUrl = await toPng(cardRef.current, {
+      const blob = await toBlob(cardRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: '#090a0f'
       });
 
-      const link = document.createElement('a');
-      link.download = `downbad-card-${walletAddress.slice(0, 6)}.png`;
-      link.href = dataUrl;
-      link.click();
-
+      await saveImageBlob(blob, `downbad-card-${walletAddress.slice(0, 6)}.png`);
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 3000);
     } catch (err) {
@@ -201,7 +198,8 @@ export default function ResultCardModal({ roastData, onClose }) {
         <div className="overflow-hidden rounded-3xl border-2 border-slate-800/90 shadow-2xl relative">
           <div 
             ref={cardRef} 
-            className={`w-full ${activeThemeObj.class} p-6 sm:p-8 space-y-6 relative overflow-hidden text-slate-100 font-sans min-h-[380px] flex flex-col justify-between transition-all duration-500`}
+            className={`w-full ${activeThemeObj.class} p-6 sm:p-8 space-y-6 relative overflow-hidden text-slate-100 font-sans flex flex-col justify-between transition-all duration-500`}
+            style={{ aspectRatio: '16/9' }}
           >
             {/* Faint Glowing Chart Trend Line in Background */}
             <div className="absolute inset-0 pointer-events-none opacity-20">

@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { toPng, toBlob } from 'html-to-image';
+import { toBlob } from 'html-to-image';
+import { saveImageBlob } from '../utils/mobileDownload.js';
 import { Download, Check, Loader2, Copy, Smile, Shuffle } from 'lucide-react';
 
 const PEDRO_KEYS = ['rockstar', 'rekt', 'copium', 'wizard', 'clown', 'diamond', 'rocket'];
@@ -71,7 +72,7 @@ export default function TelegramStickerGenerator({ roastData }) {
 
     try {
       setIsGenerating(true);
-      const dataUrl = await toPng(stickerRef.current, {
+      const blob = await toBlob(stickerRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         width: 512,
@@ -79,11 +80,7 @@ export default function TelegramStickerGenerator({ roastData }) {
         backgroundColor: '#090a0f'
       });
 
-      const link = document.createElement('a');
-      link.download = `downbad-sticker-${walletAddress.slice(0, 6)}.png`;
-      link.href = dataUrl;
-      link.click();
-
+      await saveImageBlob(blob, `downbad-sticker-${walletAddress.slice(0, 6)}.png`);
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 3000);
     } catch (err) {

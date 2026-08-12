@@ -81,7 +81,7 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-fade-in pb-12 px-3 sm:px-4">
+    <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-fade-in pb-28 sm:pb-16 px-3 sm:px-4">
       
       {/* 1. TOP HEADER BRANDING & ACTION BAR */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 glass-panel rounded-2xl">
