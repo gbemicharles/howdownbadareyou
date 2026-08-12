@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { Flame, Sparkles, TrendingUp, Zap, HelpCircle } from 'lucide-react';
 import { getCopiumRoast } from '../../server/services/copiumEngine';
 
-export default function CopiumCalculator({ copiumMetrics, biggestBag }) {
+export default function CopiumCalculator({ copiumMetrics, totalCurrentValueUsd = 0, biggestBag, positions = [] }) {
   const [dose, setDose] = useState(50); // Default 50% copium intake
 
-  if (!copiumMetrics) return null;
-
-  const currentUsd = copiumMetrics.currentTotalUsd || 0;
-  const athUsd = copiumMetrics.totalAthUsd || (currentUsd * 2.5);
-  const topSymbol = biggestBag ? biggestBag.symbol : "TON";
+  // Fallback calculation if copiumMetrics object is missing
+  const currentUsd = copiumMetrics?.currentTotalUsd ?? totalCurrentValueUsd ?? 0;
+  const athUsd = copiumMetrics?.totalAthUsd ?? (currentUsd > 0 ? currentUsd * 3.5 : 5000);
+  const topSymbol = biggestBag ? biggestBag.symbol : (positions.length > 0 ? positions[0].symbol : "TON");
 
   const { title, simulatedUsd, roast } = getCopiumRoast(dose, currentUsd, athUsd, topSymbol);
 
@@ -17,9 +16,11 @@ export default function CopiumCalculator({ copiumMetrics, biggestBag }) {
     style: 'currency',
     currency: 'USD',
     maximumFractionDigits: 0
-  }).format(num);
+  }).format(num || 0);
 
   const gainMultiplier = currentUsd > 0 ? (simulatedUsd / currentUsd).toFixed(1) : (1 + (dose / 20)).toFixed(1);
+
+  const positionList = copiumMetrics?.positions || positions || [];
 
   return (
     <div className="bg-slate-950/80 border border-purple-500/30 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden my-8 backdrop-blur-md">
@@ -31,13 +32,13 @@ export default function CopiumCalculator({ copiumMetrics, biggestBag }) {
       {/* Title Header */}
       <div className="flex items-center justify-between border-b border-slate-800/80 pb-4 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 shadow-lg shadow-purple-500/30">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 shadow-lg shadow-purple-500/30 shrink-0">
             <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
               <Flame className="w-5 h-5 text-pink-400 animate-pulse" />
             </div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+            <h3 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
               COPIUM ATH SIMULATOR 🧪💨
             </h3>
             <p className="text-xs font-bold text-slate-400">
@@ -46,7 +47,7 @@ export default function CopiumCalculator({ copiumMetrics, biggestBag }) {
           </div>
         </div>
 
-        <div className="px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 font-mono text-xs font-black shadow-inner">
+        <div className="px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 font-mono text-xs font-black shadow-inner shrink-0">
           {gainMultiplier}x Multiplier
         </div>
       </div>
@@ -120,21 +121,25 @@ export default function CopiumCalculator({ copiumMetrics, biggestBag }) {
       </div>
 
       {/* TOP ATH MULTIPLIERS PREVIEW TABLE */}
-      {copiumMetrics.positions && copiumMetrics.positions.length > 0 && (
+      {positionList && positionList.length > 0 && (
         <div className="space-y-2 relative z-10">
           <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400 block">
             Top Token ATH Recovery Multipliers:
           </span>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-            {copiumMetrics.positions.slice(0, 4).map((pos, idx) => (
-              <div key={idx} className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 space-y-0.5">
-                <span className="font-extrabold text-white block truncate">${pos.symbol}</span>
-                <span className="text-[10px] text-purple-400 font-mono font-bold block">
-                  ATH ${pos.athPriceUsd < 0.01 ? pos.athPriceUsd.toFixed(5) : pos.athPriceUsd.toFixed(2)} ({pos.multiplier}x)
-                </span>
-              </div>
-            ))}
+            {positionList.slice(0, 4).map((pos, idx) => {
+              const posAth = pos.athPriceUsd || (pos.currentPriceUsd ? pos.currentPriceUsd * 2.5 : 1.5);
+              const posMult = pos.multiplier || (pos.currentPriceUsd > 0 ? (posAth / pos.currentPriceUsd).toFixed(1) : '2.5');
+              return (
+                <div key={idx} className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 space-y-0.5">
+                  <span className="font-extrabold text-white block truncate">${pos.symbol}</span>
+                  <span className="text-[10px] text-purple-400 font-mono font-bold block">
+                    ATH ${posAth < 0.01 ? posAth.toFixed(5) : posAth.toFixed(2)} ({posMult}x)
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

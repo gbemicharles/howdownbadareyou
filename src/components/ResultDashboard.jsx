@@ -198,10 +198,12 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
         </p>
       </div>
 
-      {/* 4. COPIUM CALCULATOR (ATH REBOUND SIMULATOR) */}
+      {/* 4. COPIUM CALCULATOR (ATH REBOUND SIMULATOR) - GUARANTEED ALWAYS RENDERED */}
       <CopiumCalculator 
         copiumMetrics={copiumMetrics}
+        totalCurrentValueUsd={totalCurrentValueUsd}
         biggestBag={biggestBag}
+        positions={positions}
       />
 
       {/* 5. TELEGRAM STICKER GENERATOR */}
