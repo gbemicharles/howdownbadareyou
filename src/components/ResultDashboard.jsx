@@ -81,7 +81,7 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-fade-in pb-28 sm:pb-16 px-3 sm:px-4">
+    <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-fade-in pb-12 px-3 sm:px-4">
       
       {/* 1. TOP HEADER BRANDING & ACTION BAR */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 glass-panel rounded-2xl">
@@ -261,13 +261,13 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
                     </div>
                   </td>
                   <td className="py-3.5 text-right font-semibold text-slate-200">
-                    {new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(pos.balance || 0)}
+                    {new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(pos.quantity ?? pos.balance ?? 0)}
                   </td>
                   <td className="py-3.5 text-right font-extrabold text-white">
                     {formatUsd(pos.currentValueUsd)}
                   </td>
                   <td className="py-3.5 text-right font-extrabold">
-                    {pos.estimatedPnlUsd !== undefined ? (
+                    {pos.estimatedPnlUsd !== undefined && pos.estimatedPnlUsd !== null ? (
                       <span className={pos.estimatedPnlUsd >= 0 ? 'text-emerald-400' : 'text-red-400'}>
                         {formatUsd(pos.estimatedPnlUsd)} ({formatPercent(pos.estimatedPnlPercent)})
                       </span>

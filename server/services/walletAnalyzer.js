@@ -43,6 +43,7 @@ export function analyzeWallet(rawData) {
       name: token.name,
       decimals: token.decimals || 9,
       quantity: token.quantity,
+      balance: token.quantity, // Alias for balance
       currentPriceUsd: token.currentPriceUsd,
       currentValueUsd,
       estimatedCostBasisUsd: estCostBasis,
@@ -83,26 +84,26 @@ export function analyzeWallet(rawData) {
     return sym !== 'TON' && sym !== 'GRAM';
   });
 
-  // Find biggest loser among held Jettons (lowest estimatedPnlPercent)
+  // Find biggest loser among held Jettons (STRICTLY Jettons with negative PnL < 0%)
   let biggestLoser = null;
-  const losingJettons = jettonPositions.filter(p => p.pnlStatus === 'loss');
+  const losingJettons = jettonPositions.filter(p => p.estimatedPnlPercent !== null && p.estimatedPnlPercent < 0);
   
   if (losingJettons.length > 0) {
-    losingJettons.sort((a, b) => (a.estimatedPnlPercent || 0) - (b.estimatedPnlPercent || 0));
+    losingJettons.sort((a, b) => a.estimatedPnlPercent - b.estimatedPnlPercent);
     biggestLoser = losingJettons[0];
-  } else if (jettonPositions.length > 0) {
-    // If no negative PnL Jetton, pick lowest performing Jetton held by user
-    jettonPositions.sort((a, b) => (a.estimatedPnlPercent || 0) - (b.estimatedPnlPercent || 0));
-    biggestLoser = jettonPositions[0];
+  } else {
+    // No losing Jettons held! Set to null so Result Card & Dashboard cleanly display NONE 🎉
+    biggestLoser = null;
   }
 
   // Winning positions among held positions
   let biggestWinner = null;
-  const winningPositions = heldPositions.filter(p => p.pnlStatus === 'profit');
+  const winningPositions = heldPositions.filter(p => p.estimatedPnlPercent !== null && p.estimatedPnlPercent > 0);
   if (winningPositions.length > 0) {
-    winningPositions.sort((a, b) => (b.estimatedPnlPercent || 0) - (a.estimatedPnlPercent || 0));
+    winningPositions.sort((a, b) => b.estimatedPnlPercent - a.estimatedPnlPercent);
     biggestWinner = winningPositions[0];
   } else if (heldPositions.length > 0) {
+    // Highest value token held
     biggestWinner = heldPositions[0];
   }
 
