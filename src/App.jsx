@@ -38,69 +38,79 @@ export default function App() {
     setAppState('loading');
     setErrorMessage('');
 
+    const startTime = Date.now();
+
+    let fullData = null;
+
     try {
       // 1. Try Express API Endpoint first
       const response = await fetch(`/api/roast/${encodeURIComponent(address)}`);
       
       if (response.ok) {
-        const data = await response.json();
-        setRoastData(data);
-        setAppState('results');
-        return;
+        fullData = await response.json();
       }
     } catch (err) {
       console.warn('API endpoint unreachable, falling back to client-side pipeline:', err);
     }
 
-    // 2. Client-side Fallback Pipeline (if server endpoint is unavailable)
-    try {
-      const rawData = await getWalletRawData(address);
-      const analysis = analyzeWallet(rawData);
-      const scores = calculatePersonalityAndScores(analysis);
-      const copiumMetrics = calculateCopiumMetrics(analysis.positions, analysis.totalCurrentValueUsd);
-      const astrology = generateFinancialAstrology(analysis.walletAddress, analysis.biggestBag);
-      const roasts = generateRoasts({
-        walletAddress: analysis.walletAddress,
-        totalCurrentValueUsd: analysis.totalCurrentValueUsd,
-        estimatedPnlUsd: analysis.estimatedPnlUsd,
-        downBadScore: scores.downBadScore,
-        isProfitable: scores.isProfitable,
-        levelText: scores.levelText,
-        personalityTitle: scores.personality.title,
-        biggestBagSymbol: analysis.biggestBag?.symbol,
-        biggestLoserSymbol: analysis.biggestLoser?.symbol
-      });
+    if (!fullData) {
+      // 2. Client-side Fallback Pipeline (if server endpoint is unavailable)
+      try {
+        const rawData = await getWalletRawData(address);
+        const analysis = analyzeWallet(rawData);
+        const scores = calculatePersonalityAndScores(analysis);
+        const copiumMetrics = calculateCopiumMetrics(analysis.positions, analysis.totalCurrentValueUsd);
+        const astrology = generateFinancialAstrology(analysis.walletAddress, analysis.biggestBag);
+        const roasts = generateRoasts({
+          walletAddress: analysis.walletAddress,
+          totalCurrentValueUsd: analysis.totalCurrentValueUsd,
+          estimatedPnlUsd: analysis.estimatedPnlUsd,
+          downBadScore: scores.downBadScore,
+          isProfitable: scores.isProfitable,
+          levelText: scores.levelText,
+          personalityTitle: scores.personality.title,
+          biggestBagSymbol: analysis.biggestBag?.symbol,
+          biggestLoserSymbol: analysis.biggestLoser?.symbol
+        });
 
-      const fullData = {
-        walletAddress: analysis.walletAddress,
-        rawAddress: analysis.rawAddress,
-        totalCurrentValueUsd: analysis.totalCurrentValueUsd,
-        estimatedCostBasisUsd: analysis.estimatedCostBasisUsd,
-        estimatedPnlUsd: analysis.estimatedPnlUsd,
-        estimatedPnlPercent: analysis.estimatedPnlPercent,
-        downBadScore: scores.downBadScore,
-        isProfitable: scores.isProfitable,
-        levelText: scores.levelText,
-        personality: scores.personality,
-        metrics: scores.metrics,
-        ignoredTokensCount: analysis.ignoredTokensCount,
-        biggestBag: analysis.biggestBag,
-        biggestLoser: analysis.biggestLoser,
-        biggestWinner: analysis.biggestWinner,
-        concentrationComment: analysis.concentrationComment,
-        copiumMetrics,
-        astrology,
-        roasts,
-        positions: analysis.positions
-      };
+        fullData = {
+          walletAddress: analysis.walletAddress,
+          rawAddress: analysis.rawAddress,
+          totalCurrentValueUsd: analysis.totalCurrentValueUsd,
+          estimatedCostBasisUsd: analysis.estimatedCostBasisUsd,
+          estimatedPnlUsd: analysis.estimatedPnlUsd,
+          estimatedPnlPercent: analysis.estimatedPnlPercent,
+          downBadScore: scores.downBadScore,
+          isProfitable: scores.isProfitable,
+          levelText: scores.levelText,
+          personality: scores.personality,
+          metrics: scores.metrics,
+          ignoredTokensCount: analysis.ignoredTokensCount,
+          biggestBag: analysis.biggestBag,
+          biggestLoser: analysis.biggestLoser,
+          biggestWinner: analysis.biggestWinner,
+          concentrationComment: analysis.concentrationComment,
+          copiumMetrics,
+          astrology,
+          roasts,
+          positions: analysis.positions
+        };
+      } catch (err) {
+        console.error('Failed to analyze wallet:', err);
+        setErrorMessage(err.message || 'Failed to fetch TON wallet data. Please verify the address.');
+        setAppState('home');
+        return;
+      }
+    }
 
+    // Guarantee minimum 2.5-second loading screen so user sees step-by-step scanning steps!
+    const elapsed = Date.now() - startTime;
+    const remainingDelay = Math.max(0, 2500 - elapsed);
+
+    setTimeout(() => {
       setRoastData(fullData);
       setAppState('results');
-    } catch (err) {
-      console.error('Failed to analyze wallet:', err);
-      setErrorMessage(err.message || 'Failed to fetch TON wallet data. Please verify the address.');
-      setAppState('home');
-    }
+    }, remainingDelay);
   };
 
   const handleReset = () => {
@@ -112,7 +122,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#090a0f] text-slate-100 font-sans flex flex-col justify-between selection:bg-pink-500 selection:text-white">
+    <div className="min-h-screen bg-[#090a0f] text-slate-100 font-sans flex flex-col justify-between selection:bg-pink-500 selection:text-white pt-3 sm:pt-0">
       
       {/* GLOBAL HEADER NAV */}
       <Header 
@@ -182,7 +192,7 @@ export default function App() {
             <span className="text-slate-500">TON Wallet Roast Engine</span>
           </div>
 
-          {/* CREATOR BRANDING TAG: X FIRST, TELEGRAM SECOND, WEBSITE THIRD (GBEMICHARLES.COM) */}
+          {/* CREATOR BRANDING TAG */}
           <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs font-semibold shadow-inner">
             <span className="text-slate-400">Made by <strong className="text-white font-extrabold">Gbemicharles</strong></span>
             <span className="text-slate-700">|</span>
@@ -211,7 +221,7 @@ export default function App() {
 
             <span className="text-slate-700">•</span>
 
-            {/* 3. WEBSITE THIRD (DISPLAYING 'Website 🌐' LINKED TO GBEMICHARLES.COM) */}
+            {/* 3. WEBSITE THIRD (gbemicharles.com) */}
             <a 
               href="https://gbemicharles.com" 
               target="_blank" 

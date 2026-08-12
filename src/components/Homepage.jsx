@@ -25,8 +25,15 @@ export default function Homepage({ onSubmitAddress }) {
     onSubmitAddress(sanitized);
   };
 
+  const handleInputFocus = (e) => {
+    // Auto-scroll input to center so soft keyboard never covers it on mobile
+    setTimeout(() => {
+      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 py-12 relative overflow-hidden">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 py-8 sm:py-12 relative overflow-hidden pb-32 sm:pb-12">
       
       {/* Background Decorative Glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-600/15 rounded-full blur-3xl pointer-events-none" />
@@ -57,6 +64,7 @@ export default function Homepage({ onSubmitAddress }) {
               <input
                 type="text"
                 value={addressInput}
+                onFocus={handleInputFocus}
                 onChange={(e) => {
                   setAddressInput(e.target.value);
                   if (errorMsg) setErrorMsg('');
