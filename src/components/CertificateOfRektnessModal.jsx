@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { toPng, toBlob } from 'html-to-image';
 import { QRCodeSVG } from 'qrcode.react';
-import { X, Download, Share2, Award, Sparkles, Check, Loader2, ShieldCheck, Copy, Feather } from 'lucide-react';
+import { X, Download, Share2, Award, Sparkles, Check, Loader2, ShieldCheck, Copy } from 'lucide-react';
 
 export default function CertificateOfRektnessModal({ roastData, onClose }) {
   const certRef = useRef(null);
@@ -9,7 +9,7 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
-  const { walletAddress, downBadScore, isProfitable, personality, estimatedPnlUsd, roasts } = roastData;
+  const { walletAddress, downBadScore, isProfitable, personality, estimatedPnlUsd } = roastData;
 
   // Determine Certificate Rank Title
   let rankTitle = "CERTIFIED EXIT LIQUIDITY PROVIDER";
@@ -37,7 +37,7 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
       });
 
       const link = document.createElement('a');
-      link.download = `certificate-of-rektness-${walletAddress.slice(0, 6)}.png`;
+      link.download = `certificate-rektness-${walletAddress.slice(0, 6)}.png`;
       link.href = dataUrl;
       link.click();
 
@@ -78,7 +78,8 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
     }
   };
 
-  const handleShareCertOnX = () => {
+  const handleShareCertOnX = async () => {
+    await handleCopyCert();
     const tweetText = encodeURIComponent(`📜 OFFICIAL CERTIFICATE OF REKTNESS 📜\n\nThis certifies that TON Wallet ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)} has officially achieved ${downBadScore}% Down Bad score!\n\nRank: ${rankTitle}\nGet your certificate on Telegram at https://t.me/howdownbadareyoubot 💀 #TON #Web3`);
     const intentUrl = `https://x.com/intent/tweet?text=${tweetText}`;
     window.open(intentUrl, '_blank', 'noopener,noreferrer');
@@ -87,7 +88,7 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-lg overflow-y-auto">
       
-      <div className="max-w-2xl w-full bg-slate-950/95 border border-amber-500/30 rounded-3xl p-5 sm:p-7 space-y-5 relative shadow-2xl my-8">
+      <div className="max-w-3xl w-full bg-slate-950/95 border border-amber-500/30 rounded-3xl p-5 sm:p-7 space-y-4 relative shadow-2xl my-8">
         
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -102,7 +103,7 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
                 OFFICIAL CERTIFICATE OF REKTNESS 📜
               </h3>
               <p className="text-xs font-bold text-slate-400">
-                Cyber Parchment Diploma with Telegram Mini App QR Code!
+                16:9 Landscape Cyber Parchment Diploma formatted for Twitter/X posts!
               </p>
             </div>
           </div>
@@ -115,11 +116,11 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
           </button>
         </div>
 
-        {/* ---------------- CERTIFICATE PARCHMENT CANVAS ---------------- */}
-        <div className="overflow-hidden rounded-3xl border-2 border-amber-500/40 shadow-[0_0_50px_rgba(245,158,11,0.15)] relative">
+        {/* ---------------- 16:9 LANDSCAPE CERTIFICATE PARCHMENT CANVAS ---------------- */}
+        <div className="overflow-hidden rounded-3xl border-2 border-amber-500/40 shadow-[0_0_40px_rgba(245,158,11,0.15)] relative">
           <div 
             ref={certRef}
-            className="w-full bg-[#0c0a04] p-6 sm:p-9 space-y-6 relative text-amber-100 font-serif overflow-hidden border-8 border-[#171408]"
+            className="w-full bg-[#0c0a04] p-5 sm:p-7 space-y-4 relative text-amber-100 font-serif overflow-hidden border-8 border-[#171408] min-h-[360px] flex flex-col justify-between"
             style={{
               backgroundImage: 'radial-gradient(at 50% 10%, rgba(245,158,11,0.15) 0px, transparent 60%), radial-gradient(at 50% 90%, rgba(139,92,246,0.15) 0px, transparent 60%)'
             }}
@@ -132,70 +133,69 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
 
             {/* Header Title */}
             <div className="text-center space-y-1 font-sans">
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-400">
+              <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-400">
                 TON BLOCKCHAIN ON-CHAIN DIPLOMA
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase border-b border-amber-500/30 pb-3">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white uppercase border-b border-amber-500/30 pb-2">
                 CERTIFICATE OF REKTNESS 📜
               </h1>
             </div>
 
             {/* Recipient & Rank */}
-            <div className="text-center space-y-3 font-sans py-2">
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">THIS OFFICIAL CERTIFICATE IS PROUDLY PRESENTED TO:</p>
+            <div className="text-center space-y-2 font-sans my-auto">
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">THIS OFFICIAL CERTIFICATE IS PROUDLY PRESENTED TO:</p>
               
-              <div className="font-mono text-sm sm:text-base font-extrabold text-amber-300 bg-amber-500/10 py-1.5 px-4 rounded-xl border border-amber-500/30 inline-block">
+              <div className="font-mono text-xs sm:text-sm font-extrabold text-amber-300 bg-amber-500/10 py-1 px-4 rounded-xl border border-amber-500/30 inline-block truncate max-w-full">
                 {walletAddress}
               </div>
 
-              <div className="pt-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-purple-300 block">AWARDED DEGREE RANK:</span>
-                <h2 className="text-lg sm:text-xl font-black bg-gradient-to-r from-amber-300 via-pink-400 to-purple-300 bg-clip-text text-transparent tracking-wide">
+              <div>
+                <span className="text-[9px] font-black uppercase tracking-widest text-purple-300 block">AWARDED DEGREE RANK:</span>
+                <h2 className="text-base sm:text-lg font-black bg-gradient-to-r from-amber-300 via-pink-400 to-purple-300 bg-clip-text text-transparent tracking-wide">
                   {rankTitle}
                 </h2>
               </div>
             </div>
 
             {/* Citation Statement */}
-            <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-2xl text-center space-y-1 font-sans">
-              <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider block">OFFICIAL CITATION:</span>
-              <p className="text-xs font-bold text-slate-300 italic leading-relaxed">
-                "Having demonstrated legendary conviction by holding positions through -90% drops, inhaling unmeasured quantities of Copium, and selflessly providing exit liquidity to devs in need, this wallet is hereby granted everlasting Web3 distinction."
+            <div className="bg-amber-500/5 border border-amber-500/20 p-3 rounded-xl text-center font-sans">
+              <p className="text-[11px] font-bold text-slate-300 italic leading-snug">
+                "Having demonstrated legendary conviction by holding positions through -90% drops and selflessly providing exit liquidity to devs in need, this wallet is hereby granted everlasting Web3 distinction."
               </p>
             </div>
 
             {/* Signatures, Gold Seal & QR Code Row */}
-            <div className="grid grid-cols-3 gap-2 items-center pt-4 border-t border-amber-500/30 text-center font-sans text-xs">
+            <div className="grid grid-cols-3 gap-2 items-center border-t border-amber-500/30 pt-3 text-center font-sans text-xs">
               
               {/* Signature A */}
-              <div className="space-y-1 text-left">
-                <span className="text-base font-serif italic text-amber-200 block font-bold">Pavel Durov</span>
-                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block">Founder, Telegram / TON</span>
-                <span className="text-[8px] font-extrabold text-amber-400/80 uppercase block pt-1 font-mono">MADE BY GBEMICHARLES</span>
+              <div className="space-y-0.5 text-left">
+                <span className="text-sm font-serif italic text-amber-200 block font-bold">Pavel Durov</span>
+                <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider block">Founder, Telegram / TON</span>
+                <span className="text-[8px] font-extrabold text-amber-400/90 uppercase block font-mono">MADE BY GBEMICHARLES</span>
               </div>
 
               {/* Gold Seal */}
               <div className="flex justify-center">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-600 via-yellow-400 to-amber-500 p-1 shadow-lg shadow-amber-500/30 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-600 via-yellow-400 to-amber-500 p-0.5 shadow-lg shadow-amber-500/30 flex items-center justify-center">
                   <div className="w-full h-full rounded-full bg-[#0c0a04] border border-amber-400 flex flex-col items-center justify-center">
-                    <ShieldCheck className="w-5 h-5 text-amber-400" />
-                    <span className="text-[7px] font-black text-amber-300 tracking-widest uppercase">VERIFIED</span>
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                    <span className="text-[6px] font-black text-amber-300 tracking-widest uppercase">VERIFIED</span>
                   </div>
                 </div>
               </div>
 
               {/* DYNAMIC TELEGRAM BOT QR CODE */}
-              <div className="flex flex-col items-end gap-1">
+              <div className="flex flex-col items-end gap-0.5">
                 <div className="p-1 bg-[#0c0a04] border border-amber-500/40 rounded-xl shadow-md">
                   <QRCodeSVG 
                     value="https://t.me/howdownbadareyoubot" 
-                    size={52} 
+                    size={42} 
                     bgColor="#0c0a04" 
                     fgColor="#fbbf24" 
                     level="L" 
                   />
                 </div>
-                <span className="text-[8px] font-black text-amber-400 tracking-widest uppercase font-mono">
+                <span className="text-[7px] font-black text-amber-400 tracking-widest uppercase font-mono">
                   T.ME/HOWDOWNBADAREYOUBOT
                 </span>
               </div>
@@ -204,7 +204,7 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
 
           </div>
         </div>
-        {/* ---------------- END PARCHMENT CANVAS ---------------- */}
+        {/* ---------------- END 16:9 LANDSCAPE CANVAS ---------------- */}
 
         {/* Modal Buttons */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
@@ -222,7 +222,7 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
             ) : downloadSuccess ? (
               <>
                 <Check className="w-4 h-4 text-emerald-400" />
-                <span>CERTIFICATE SAVED!</span>
+                <span>DIPLOMA SAVED!</span>
               </>
             ) : (
               <>
@@ -255,7 +255,7 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
             className="px-4 py-3 rounded-2xl bg-black hover:bg-slate-900 border border-slate-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
           >
             <Share2 className="w-4 h-4 text-pink-400" />
-            <span>SHARE ON X 🐦</span>
+            <span>POST DIPLOMA ON X 🐦</span>
           </button>
 
         </div>
