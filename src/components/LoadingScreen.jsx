@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Skull, Radar, Sparkles } from 'lucide-react';
+import { Skull, ArrowLeft } from 'lucide-react';
 
 const LOADING_MESSAGES = [
   "Scanning wallet...",
@@ -9,7 +9,7 @@ const LOADING_MESSAGES = [
   "Preparing the roast..."
 ];
 
-export default function LoadingScreen({ address }) {
+export default function LoadingScreen({ address, onCancel }) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [progressPercent, setProgressPercent] = useState(15);
 
@@ -40,7 +40,7 @@ export default function LoadingScreen({ address }) {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 relative overflow-hidden cyber-scanlines">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-140px)] px-4 relative overflow-hidden cyber-scanlines">
       
       {/* Glow effect */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-600/20 rounded-full blur-3xl pointer-events-none" />
@@ -94,6 +94,17 @@ export default function LoadingScreen({ address }) {
         <p className="text-xs text-slate-500 italic">
           Hold on tight. Financial truths can be painful. 💀
         </p>
+
+        {/* Cancel Button */}
+        {onCancel && (
+          <button
+            onClick={onCancel}
+            className="mt-2 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 font-bold text-xs transition-all cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Cancel
+          </button>
+        )}
 
       </div>
     </div>

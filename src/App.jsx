@@ -141,13 +141,13 @@ export default function App() {
       )}
 
       {/* MAIN VIEWPORT SWITCHER */}
-      <main className="flex-1">
+      <main className="flex-1 pt-4 sm:pt-6">
         {appState === 'home' && (
           <Homepage onSubmitAddress={handleAddressSubmitted} />
         )}
 
         {appState === 'loading' && (
-          <LoadingScreen address={currentAddress} />
+          <LoadingScreen address={currentAddress} onCancel={handleReset} />
         )}
 
         {appState === 'results' && roastData && (
