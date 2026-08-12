@@ -182,19 +182,12 @@ export default function App() {
             <span className="text-slate-500">TON Wallet Roast Engine</span>
           </div>
 
-          {/* CREATOR BRANDING TAG WITH GBEMICHARLES.COM WEBSITE LINK */}
+          {/* CREATOR BRANDING TAG: X FIRST, TELEGRAM SECOND, GBEMICHARLES.COM THIRD */}
           <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs font-semibold shadow-inner">
             <span className="text-slate-400">Made by <strong className="text-white font-extrabold">Gbemicharles</strong></span>
             <span className="text-slate-700">|</span>
-            <a 
-              href="https://gbemicharles.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-amber-400 hover:text-amber-300 font-extrabold flex items-center gap-1 transition-colors hover:underline"
-            >
-              <span>gbemicharles.com 🌐</span>
-            </a>
-            <span className="text-slate-700">•</span>
+            
+            {/* 1. X / TWITTER FIRST */}
             <a 
               href="https://x.com/gbemicharles_" 
               target="_blank" 
@@ -203,7 +196,10 @@ export default function App() {
             >
               <span>X 🐦</span>
             </a>
+
             <span className="text-slate-700">•</span>
+
+            {/* 2. TELEGRAM SECOND */}
             <a 
               href="https://t.me/gbemicharles" 
               target="_blank" 
@@ -211,6 +207,18 @@ export default function App() {
               className="text-cyan-400 hover:text-cyan-300 font-extrabold flex items-center gap-1 transition-colors hover:underline"
             >
               <span>Telegram 📲</span>
+            </a>
+
+            <span className="text-slate-700">•</span>
+
+            {/* 3. WEBSITE THIRD (gbemicharles.com) */}
+            <a 
+              href="https://gbemicharles.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-amber-400 hover:text-amber-300 font-extrabold flex items-center gap-1 transition-colors hover:underline"
+            >
+              <span>gbemicharles.com 🌐</span>
             </a>
           </div>
 
