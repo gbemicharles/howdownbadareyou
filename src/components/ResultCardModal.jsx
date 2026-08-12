@@ -290,7 +290,7 @@ export default function ResultCardModal({ roastData, onClose }) {
 
                   {/* Rekt Bag (Strictly Actual Held Jetton, Never Fake Token or GRAM) */}
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400 uppercase font-black text-[10px] w-20">Rekt:</span>
+                    <span className="text-slate-400 uppercase font-black text-[10px] w-20">Rekt Bag:</span>
                     <strong className="text-pink-400 font-extrabold">
                       {biggestLoser ? (
                         <>${biggestLoser.symbol} {biggestLoser.estimatedPnlPercent !== null && biggestLoser.estimatedPnlPercent !== undefined ? `(${biggestLoser.estimatedPnlPercent.toFixed(0)}%)` : ''}</>
