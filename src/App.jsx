@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header.jsx';
 import Homepage from './components/Homepage.jsx';
 import LoadingScreen from './components/LoadingScreen.jsx';
@@ -6,175 +6,165 @@ import ResultDashboard from './components/ResultDashboard.jsx';
 import ResultCardModal from './components/ResultCardModal.jsx';
 import WalletDuelModal from './components/WalletDuelModal.jsx';
 import CertificateOfRektnessModal from './components/CertificateOfRektnessModal.jsx';
-
-// Direct Client-Side Fallback Services for seamless standalone offline/Vite operation
-import { isValidTonAddress, getWalletRawData } from '../server/services/tonProvider.js';
+import { getWalletRawData } from '../server/services/tonProvider.js';
 import { analyzeWallet } from '../server/services/walletAnalyzer.js';
-import { calculatePersonalityAndScores, getConcentrationComment } from '../server/services/personalityEngine.js';
+import { calculatePersonalityAndScores } from '../server/services/personalityEngine.js';
+import { calculateCopiumMetrics } from '../server/services/copiumEngine.js';
+import { generateFinancialAstrology } from '../server/services/astrologyEngine.js';
 import { generateRoasts } from '../server/services/roastEngine.js';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState('home'); // 'home' | 'loading' | 'result'
-  const [activeAddress, setActiveAddress] = useState('');
+  const [appState, setAppState] = useState('home'); // 'home' | 'loading' | 'results'
+  const [currentAddress, setCurrentAddress] = useState('');
   const [roastData, setRoastData] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Modal Visibility States
+  const [isResultCardModalOpen, setIsResultCardModalOpen] = useState(false);
   const [isDuelModalOpen, setIsDuelModalOpen] = useState(false);
   const [isCertModalOpen, setIsCertModalOpen] = useState(false);
 
-  // Trigger Roast Analysis
-  const handleStartRoast = async (address) => {
-    setActiveAddress(address);
-    setErrorMsg(null);
-    setCurrentView('loading');
+  // Auto-scan address if query param is passed (e.g. ?address=EQ...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const addr = params.get('address');
+    if (addr) {
+      handleAddressSubmitted(addr);
+    }
+  }, []);
+
+  const handleAddressSubmitted = async (address) => {
+    setCurrentAddress(address);
+    setAppState('loading');
+    setErrorMessage('');
 
     try {
-      let payload = null;
-      try {
-        const timestamp = Date.now();
-        const apiPath = `/api/roast/${encodeURIComponent(address)}?t=${timestamp}`;
-        const res = await fetch(apiPath, {
-          headers: { 'Cache-Control': 'no-cache' }
-        });
-        if (res.ok) {
-          payload = await res.json();
-        }
-      } catch (e) {
-        // Express API backend not reachable directly, using client-side engine pipeline fallback
-      }
-
-      if (!payload) {
-        const rawData = await getWalletRawData(address);
-        const analysis = analyzeWallet(rawData);
-
-        if (analysis.totalPositionsCount === 0 && analysis.totalCurrentValueUsd === 0) {
-          payload = {
-            emptyWallet: true,
-            walletAddress: address,
-            message: "We found the wallet.\n\nUnfortunately, there's nothing here to roast 💀"
-          };
-        } else {
-          const scoreData = calculatePersonalityAndScores(analysis);
-          const roasts = generateRoasts(analysis, scoreData.personality, scoreData);
-          const concentrationComment = getConcentrationComment(
-            analysis.biggestBag ? analysis.biggestBag.concentrationPercent : 0
-          );
-
-          payload = {
-            emptyWallet: false,
-            walletAddress: address,
-            isDemo: analysis.isDemo,
-            totalCurrentValueUsd: analysis.totalCurrentValueUsd,
-            estimatedCostBasisUsd: analysis.estimatedCostBasisUsd,
-            estimatedPnlUsd: analysis.estimatedPnlUsd,
-            estimatedPnlPercent: analysis.estimatedPnlPercent,
-            downBadScore: scoreData.downBadScore,
-            isProfitable: scoreData.isProfitable,
-            levelText: scoreData.levelText,
-            personality: scoreData.personality,
-            metrics: scoreData.metrics,
-            ignoredTokensCount: analysis.ignoredTokensCount,
-            totalPositionsCount: analysis.totalPositionsCount,
-            losingPositionsCount: analysis.losingPositionsCount,
-            winningPositionsCount: analysis.winningPositionsCount,
-            biggestBag: analysis.biggestBag,
-            biggestLoser: analysis.biggestLoser,
-            biggestWinner: analysis.biggestWinner,
-            concentrationComment,
-            copiumMetrics: analysis.copiumMetrics,
-            astrology: analysis.astrology,
-            roasts,
-            positions: analysis.positions
-          };
-        }
-      }
-
-      if (payload.emptyWallet) {
-        setErrorMsg(payload.message || "We found the wallet. Unfortunately, there's nothing here to roast 💀");
-        setCurrentView('home');
+      // 1. Try Express API Endpoint first
+      const response = await fetch(`/api/roast/${encodeURIComponent(address)}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setRoastData(data);
+        setAppState('results');
         return;
       }
-
-      setRoastData(payload);
-
-      setTimeout(() => {
-        setCurrentView('result');
-      }, 1200);
-
     } catch (err) {
-      console.error('Roast processing error:', err);
-      setErrorMsg("The blockchain is having a moment. Try again in a few seconds 💀");
-      setCurrentView('home');
+      console.warn('API endpoint unreachable, falling back to client-side pipeline:', err);
+    }
+
+    // 2. Client-side Fallback Pipeline (if server endpoint is unavailable)
+    try {
+      const rawData = await getWalletRawData(address);
+      const analysis = analyzeWallet(rawData);
+      const scores = calculatePersonalityAndScores(analysis);
+      const copiumMetrics = calculateCopiumMetrics(analysis.positions, analysis.totalCurrentValueUsd);
+      const astrology = generateFinancialAstrology(analysis.walletAddress, analysis.biggestBag);
+      const roasts = generateRoasts({
+        walletAddress: analysis.walletAddress,
+        totalCurrentValueUsd: analysis.totalCurrentValueUsd,
+        estimatedPnlUsd: analysis.estimatedPnlUsd,
+        downBadScore: scores.downBadScore,
+        isProfitable: scores.isProfitable,
+        levelText: scores.levelText,
+        personalityTitle: scores.personality.title,
+        biggestBagSymbol: analysis.biggestBag?.symbol,
+        biggestLoserSymbol: analysis.biggestLoser?.symbol
+      });
+
+      const fullData = {
+        walletAddress: analysis.walletAddress,
+        rawAddress: analysis.rawAddress,
+        totalCurrentValueUsd: analysis.totalCurrentValueUsd,
+        estimatedCostBasisUsd: analysis.estimatedCostBasisUsd,
+        estimatedPnlUsd: analysis.estimatedPnlUsd,
+        estimatedPnlPercent: analysis.estimatedPnlPercent,
+        downBadScore: scores.downBadScore,
+        isProfitable: scores.isProfitable,
+        levelText: scores.levelText,
+        personality: scores.personality,
+        metrics: scores.metrics,
+        ignoredTokensCount: analysis.ignoredTokensCount,
+        biggestBag: analysis.biggestBag,
+        biggestLoser: analysis.biggestLoser,
+        biggestWinner: analysis.biggestWinner,
+        concentrationComment: analysis.concentrationComment,
+        copiumMetrics,
+        astrology,
+        roasts,
+        positions: analysis.positions
+      };
+
+      setRoastData(fullData);
+      setAppState('results');
+    } catch (err) {
+      console.error('Failed to analyze wallet:', err);
+      setErrorMessage(err.message || 'Failed to fetch TON wallet data. Please verify the address.');
+      setAppState('home');
     }
   };
 
   const handleReset = () => {
-    setCurrentView('home');
-    setActiveAddress('');
+    setAppState('home');
+    setCurrentAddress('');
     setRoastData(null);
-    setErrorMsg(null);
-    setIsShareModalOpen(false);
-    setIsDuelModalOpen(false);
-    setIsCertModalOpen(false);
+    setErrorMessage('');
+    window.history.replaceState({}, document.title, window.location.pathname);
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between selection:bg-pink-500 selection:text-white relative">
+    <div className="min-h-screen bg-[#090a0f] text-slate-100 font-sans flex flex-col justify-between selection:bg-pink-500 selection:text-white">
       
-      {/* Header */}
+      {/* GLOBAL HEADER NAV */}
       <Header 
-        onReset={handleReset} 
         onOpenDuel={() => setIsDuelModalOpen(true)}
+        onReset={handleReset}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 pb-16">
-        {errorMsg && (
-          <div className="max-w-xl mx-auto mt-6 px-4">
-            <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-center font-bold text-sm">
-              {errorMsg}
-            </div>
+      {/* ERROR ALERT TOAST */}
+      {errorMessage && (
+        <div className="max-w-xl mx-auto mt-4 px-4">
+          <div className="bg-red-950/80 border border-red-500/50 text-red-200 px-4 py-3 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xl">
+            <span>⚠️ {errorMessage}</span>
+            <button onClick={() => setErrorMessage('')} className="text-red-400 hover:text-white font-mono">✕</button>
           </div>
+        </div>
+      )}
+
+      {/* MAIN VIEWPORT SWITCHER */}
+      <main className="flex-1">
+        {appState === 'home' && (
+          <Homepage onSubmitAddress={handleAddressSubmitted} />
         )}
 
-        {currentView === 'home' && (
-          <Homepage 
-            onSubmitAddress={handleStartRoast}
-            onSelectDemo={handleStartRoast}
-          />
+        {appState === 'loading' && (
+          <LoadingScreen address={currentAddress} />
         )}
 
-        {currentView === 'loading' && (
-          <LoadingScreen address={activeAddress} />
-        )}
-
-        {currentView === 'result' && roastData && (
+        {appState === 'results' && roastData && (
           <ResultDashboard 
             roastData={roastData} 
             onReset={handleReset}
-            onOpenShareCard={() => setIsShareModalOpen(true)}
+            onOpenShareCard={() => setIsResultCardModalOpen(true)}
             onOpenCert={() => setIsCertModalOpen(true)}
           />
         )}
       </main>
 
-      {/* Result Card Modal */}
-      {isShareModalOpen && roastData && (
+      {/* MODALS */}
+      {isResultCardModalOpen && roastData && (
         <ResultCardModal 
           roastData={roastData} 
-          onClose={() => setIsShareModalOpen(false)}
+          onClose={() => setIsResultCardModalOpen(false)} 
         />
       )}
 
-      {/* Wallet Duel Modal */}
       {isDuelModalOpen && (
         <WalletDuelModal 
-          initialWalletA={activeAddress}
+          initialWalletA={currentAddress}
           onClose={() => setIsDuelModalOpen(false)}
         />
       )}
 
-      {/* Certificate of Rektness Modal */}
       {isCertModalOpen && roastData && (
         <CertificateOfRektnessModal 
           roastData={roastData} 
@@ -192,17 +182,26 @@ export default function App() {
             <span className="text-slate-500">TON Wallet Roast Engine</span>
           </div>
 
-          {/* CREATOR BRANDING TAG */}
+          {/* CREATOR BRANDING TAG WITH GBEMICHARLES.COM WEBSITE LINK */}
           <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs font-semibold shadow-inner">
             <span className="text-slate-400">Made by <strong className="text-white font-extrabold">Gbemicharles</strong></span>
             <span className="text-slate-700">|</span>
+            <a 
+              href="https://gbemicharles.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-amber-400 hover:text-amber-300 font-extrabold flex items-center gap-1 transition-colors hover:underline"
+            >
+              <span>gbemicharles.com 🌐</span>
+            </a>
+            <span className="text-slate-700">•</span>
             <a 
               href="https://x.com/gbemicharles_" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-pink-400 hover:text-pink-300 font-extrabold flex items-center gap-1 transition-colors hover:underline"
             >
-              <span>X / Twitter 🐦</span>
+              <span>X 🐦</span>
             </a>
             <span className="text-slate-700">•</span>
             <a 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Flame, ShieldAlert, Sparkles, ArrowRight, AlertCircle } from 'lucide-react';
 import { isValidTonAddress, sanitizeTonAddress } from '../../server/services/tonProvider.js';
+import TelegramMiniAppBanner from './TelegramMiniAppBanner.jsx';
 
 export default function Homepage({ onSubmitAddress }) {
   const [addressInput, setAddressInput] = useState('');
@@ -83,6 +84,9 @@ export default function Homepage({ onSubmitAddress }) {
             </div>
           )}
         </div>
+
+        {/* Telegram Group Bot Command Banner */}
+        <TelegramMiniAppBanner />
 
         {/* Privacy Assurance */}
         <div className="flex items-center justify-center gap-2 text-xs font-mono text-slate-500 pt-2">
