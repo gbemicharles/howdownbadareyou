@@ -13,6 +13,9 @@ export function initTelegramWebApp() {
       tg.expand();
       tg.ready();
 
+      // Lock vertical swipes so the mini app doesn't minimize when scrolling
+      if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
+
       // Configure theme colors
       if (tg.setHeaderColor) tg.setHeaderColor('#090a0f');
       if (tg.setBackgroundColor) tg.setBackgroundColor('#090a0f');
