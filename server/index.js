@@ -113,9 +113,9 @@ app.get('/api/roast/:address', async (req, res) => {
 
 // Serve built frontend in production
 if (isProd) {
-  const distPath = path.join(__dirname, '..', 'dist');
+  const distPath = path.resolve(__dirname, '..', 'dist');
   app.use(express.static(distPath));
-  app.get('*', (req, res) => {
+  app.get('*', (_req, res) => {
     res.sendFile(path.join(distPath, 'index.html'));
   });
 }
