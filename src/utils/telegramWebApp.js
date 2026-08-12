@@ -10,8 +10,12 @@ export function initTelegramWebApp() {
     
     // Expand to full viewport inside Telegram
     try {
-      tg.expand();
       tg.ready();
+      tg.expand();
+
+      // Request fullscreen (Bot API 8.0+) — shows the native swipe-lock
+      // indicator chrome on the side, like other mini apps
+      if (tg.requestFullscreen) tg.requestFullscreen();
 
       // Lock vertical swipes so the mini app doesn't minimize when scrolling
       if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
