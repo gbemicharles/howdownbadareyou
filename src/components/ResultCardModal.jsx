@@ -138,11 +138,6 @@ export default function ResultCardModal({ roastData, onClose }) {
 
   const formatUsd = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num || 0);
 
-  // Ensure losing Jetton symbol fallback is never GRAM or TON
-  const rektJettonSymbol = (biggestLoser && biggestLoser.symbol && biggestLoser.symbol.toUpperCase() !== 'GRAM' && biggestLoser.symbol.toUpperCase() !== 'TON') 
-    ? biggestLoser.symbol 
-    : 'DOGS';
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-lg overflow-y-auto">
       
@@ -281,19 +276,27 @@ export default function ResultCardModal({ roastData, onClose }) {
                     </strong>
                   </div>
 
-                  {/* Best Bag */}
+                  {/* Best Bag (Actual Held Token) */}
                   <div className="flex items-center gap-2">
                     <span className="text-slate-400 uppercase font-black text-[10px] w-20">Best Bag:</span>
                     <strong className="text-emerald-400 font-extrabold">
-                      ${biggestWinner ? biggestWinner.symbol : 'USDT'} {biggestWinner && biggestWinner.estimatedPnlPercent ? `(+${biggestWinner.estimatedPnlPercent.toFixed(0)}%)` : ''}
+                      {biggestWinner ? (
+                        <>${biggestWinner.symbol} {biggestWinner.estimatedPnlPercent !== null && biggestWinner.estimatedPnlPercent !== undefined ? `(+${biggestWinner.estimatedPnlPercent.toFixed(0)}%)` : ''}</>
+                      ) : (
+                        <span className="text-slate-400 font-mono font-bold">NONE</span>
+                      )}
                     </strong>
                   </div>
 
-                  {/* Rekt Bag (Strictly Jetton, Never GRAM) */}
+                  {/* Rekt Bag (Strictly Actual Held Jetton, Never Fake Token or GRAM) */}
                   <div className="flex items-center gap-2">
                     <span className="text-slate-400 uppercase font-black text-[10px] w-20">Rekt:</span>
                     <strong className="text-pink-400 font-extrabold">
-                      ${rektJettonSymbol} {biggestLoser && biggestLoser.estimatedPnlPercent ? `(${biggestLoser.estimatedPnlPercent.toFixed(0)}%)` : ''}
+                      {biggestLoser ? (
+                        <>${biggestLoser.symbol} {biggestLoser.estimatedPnlPercent !== null && biggestLoser.estimatedPnlPercent !== undefined ? `(${biggestLoser.estimatedPnlPercent.toFixed(0)}%)` : ''}</>
+                      ) : (
+                        <span className="text-slate-400 font-mono font-bold">NONE 🎉</span>
+                      )}
                     </strong>
                   </div>
 

@@ -172,14 +172,14 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
           <div className="p-3 sm:p-4 rounded-2xl bg-slate-900/50 border border-slate-800 space-y-1">
             <span className="text-[9px] sm:text-[10px] text-slate-400 uppercase font-bold block">Best Winner</span>
             <span className="text-sm sm:text-lg font-black text-emerald-400 block truncate">
-              {biggestWinner ? `${biggestWinner.symbol}` : 'USDT'}
+              {biggestWinner ? `${biggestWinner.symbol}` : 'NONE'}
             </span>
           </div>
 
           <div className="p-3 sm:p-4 rounded-2xl bg-slate-900/50 border border-slate-800 space-y-1">
-            <span className="text-[9px] sm:text-[10px] text-slate-400 uppercase font-bold block">Worst Loser</span>
+            <span className="text-[9px] sm:text-[10px] text-slate-400 uppercase font-bold block">Rekt Bag</span>
             <span className="text-sm sm:text-lg font-black text-pink-400 block truncate">
-              {biggestLoser ? `${biggestLoser.symbol}` : 'GRAM'}
+              {biggestLoser ? `${biggestLoser.symbol}` : 'NONE 🎉'}
             </span>
           </div>
 
@@ -200,9 +200,8 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
 
       {/* 4. COPIUM CALCULATOR (ATH REBOUND SIMULATOR) */}
       <CopiumCalculator 
-        currentPortfolioUsd={totalCurrentValueUsd}
-        estimatedPnlUsd={estimatedPnlUsd}
-        positions={positions}
+        copiumMetrics={copiumMetrics}
+        biggestBag={biggestBag}
       />
 
       {/* 5. TELEGRAM STICKER GENERATOR */}

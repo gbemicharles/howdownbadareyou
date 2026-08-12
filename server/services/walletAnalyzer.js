@@ -56,9 +56,12 @@ export function analyzeWallet(rawData) {
   // Sort positions by current value descending
   validPositions.sort((a, b) => b.currentValueUsd - a.currentValueUsd);
 
+  // Filter positions actually held with non-zero balance
+  const heldPositions = validPositions.filter(p => p.quantity > 0 || p.currentValueUsd > 0);
+
   // Calculate totals
-  const totalCurrentValueUsd = validPositions.reduce((acc, p) => acc + p.currentValueUsd, 0);
-  const totalCostBasisUsd = validPositions.reduce((acc, p) => acc + p.estimatedCostBasisUsd, 0);
+  const totalCurrentValueUsd = heldPositions.reduce((acc, p) => acc + p.currentValueUsd, 0);
+  const totalCostBasisUsd = heldPositions.reduce((acc, p) => acc + p.estimatedCostBasisUsd, 0);
   
   let overallPnlUsd = 0;
   let overallPnlPercent = 0;
@@ -68,44 +71,46 @@ export function analyzeWallet(rawData) {
     overallPnlPercent = ((totalCurrentValueUsd - totalCostBasisUsd) / totalCostBasisUsd) * 100;
   }
 
-  // Highlight positions
-  const biggestBag = validPositions.length > 0 ? validPositions[0] : null;
+  // Highlight positions (Biggest Bag)
+  const biggestBag = heldPositions.length > 0 ? heldPositions[0] : null;
   const biggestBagConcentration = (biggestBag && totalCurrentValueUsd > 0) 
     ? (biggestBag.currentValueUsd / totalCurrentValueUsd) * 100 
     : 0;
 
-  // Jetton Losing positions (Strictly exclude TON and official GRAM)
-  const jettonLosingPositions = validPositions.filter(p => {
+  // Jetton positions (Strictly exclude native TON and official GRAM)
+  const jettonPositions = heldPositions.filter(p => {
     const sym = (p.symbol || '').toUpperCase();
-    return p.pnlStatus === 'loss' && sym !== 'TON' && sym !== 'GRAM';
+    return sym !== 'TON' && sym !== 'GRAM';
   });
+
+  // Find biggest loser among held Jettons (lowest estimatedPnlPercent)
+  let biggestLoser = null;
+  const losingJettons = jettonPositions.filter(p => p.pnlStatus === 'loss');
   
-  jettonLosingPositions.sort((a, b) => (a.estimatedPnlPercent || 0) - (b.estimatedPnlPercent || 0));
-  
-  let biggestLoser = jettonLosingPositions.length > 0 ? jettonLosingPositions[0] : null;
-  
-  // If no losing Jetton found, pick any Jetton position (excluding TON and GRAM)
-  if (!biggestLoser) {
-    const otherJettons = validPositions.filter(p => {
-      const sym = (p.symbol || '').toUpperCase();
-      return sym !== 'TON' && sym !== 'GRAM';
-    });
-    if (otherJettons.length > 0) {
-      otherJettons.sort((a, b) => (a.estimatedPnlPercent || 0) - (b.estimatedPnlPercent || 0));
-      biggestLoser = otherJettons[0];
-    }
+  if (losingJettons.length > 0) {
+    losingJettons.sort((a, b) => (a.estimatedPnlPercent || 0) - (b.estimatedPnlPercent || 0));
+    biggestLoser = losingJettons[0];
+  } else if (jettonPositions.length > 0) {
+    // If no negative PnL Jetton, pick lowest performing Jetton held by user
+    jettonPositions.sort((a, b) => (a.estimatedPnlPercent || 0) - (b.estimatedPnlPercent || 0));
+    biggestLoser = jettonPositions[0];
   }
 
-  // Winning positions
-  const winningPositions = validPositions.filter(p => p.pnlStatus === 'profit');
-  winningPositions.sort((a, b) => (b.estimatedPnlPercent || 0) - (a.estimatedPnlPercent || 0));
-  const biggestWinner = winningPositions.length > 0 ? winningPositions[0] : null;
+  // Winning positions among held positions
+  let biggestWinner = null;
+  const winningPositions = heldPositions.filter(p => p.pnlStatus === 'profit');
+  if (winningPositions.length > 0) {
+    winningPositions.sort((a, b) => (b.estimatedPnlPercent || 0) - (a.estimatedPnlPercent || 0));
+    biggestWinner = winningPositions[0];
+  } else if (heldPositions.length > 0) {
+    biggestWinner = heldPositions[0];
+  }
 
   // Calculate Feature #1: Copium ATH Simulator Metrics
-  const copiumMetrics = calculateCopiumMetrics(validPositions, totalCurrentValueUsd);
+  const copiumMetrics = calculateCopiumMetrics(heldPositions, totalCurrentValueUsd);
 
   // Calculate Feature #2: Web3 Financial Astrology Horoscope
-  const astrology = generateFinancialAstrology(rawData.address, validPositions);
+  const astrology = generateFinancialAstrology(rawData.address, heldPositions);
 
   return {
     walletAddress: rawData.address,
@@ -115,8 +120,8 @@ export function analyzeWallet(rawData) {
     estimatedPnlUsd: overallPnlUsd,
     estimatedPnlPercent: overallPnlPercent,
     ignoredTokensCount,
-    totalPositionsCount: validPositions.length,
-    losingPositionsCount: jettonLosingPositions.length,
+    totalPositionsCount: heldPositions.length,
+    losingPositionsCount: losingJettons.length,
     winningPositionsCount: winningPositions.length,
     biggestBag,
     biggestLoser,
@@ -124,6 +129,6 @@ export function analyzeWallet(rawData) {
     biggestBagConcentration,
     copiumMetrics,
     astrology,
-    positions: validPositions
+    positions: heldPositions
   };
 }
