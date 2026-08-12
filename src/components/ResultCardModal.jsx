@@ -138,6 +138,11 @@ export default function ResultCardModal({ roastData, onClose }) {
 
   const formatUsd = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num || 0);
 
+  // Ensure losing Jetton symbol fallback is never GRAM or TON
+  const rektJettonSymbol = (biggestLoser && biggestLoser.symbol && biggestLoser.symbol.toUpperCase() !== 'GRAM' && biggestLoser.symbol.toUpperCase() !== 'TON') 
+    ? biggestLoser.symbol 
+    : 'DOGS';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-lg overflow-y-auto">
       
@@ -284,11 +289,11 @@ export default function ResultCardModal({ roastData, onClose }) {
                     </strong>
                   </div>
 
-                  {/* Rekt Bag */}
+                  {/* Rekt Bag (Strictly Jetton, Never GRAM) */}
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400 uppercase font-black text-[10px] w-20">Rekt Bag:</span>
+                    <span className="text-slate-400 uppercase font-black text-[10px] w-20">Rekt:</span>
                     <strong className="text-pink-400 font-extrabold">
-                      ${biggestLoser ? biggestLoser.symbol : 'REKT'} {biggestLoser && biggestLoser.estimatedPnlPercent ? `(${biggestLoser.estimatedPnlPercent.toFixed(0)}%)` : ''}
+                      ${rektJettonSymbol} {biggestLoser && biggestLoser.estimatedPnlPercent ? `(${biggestLoser.estimatedPnlPercent.toFixed(0)}%)` : ''}
                     </strong>
                   </div>
 

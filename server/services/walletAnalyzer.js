@@ -74,17 +74,26 @@ export function analyzeWallet(rawData) {
     ? (biggestBag.currentValueUsd / totalCurrentValueUsd) * 100 
     : 0;
 
-  // Losing positions (prefer Jettons over native TON or official GRAM)
-  const losingPositions = validPositions.filter(p => p.pnlStatus === 'loss');
-  losingPositions.sort((a, b) => (a.estimatedPnlPercent || 0) - (b.estimatedPnlPercent || 0));
-  
-  let biggestLoser = losingPositions.length > 0 ? losingPositions[0] : null;
-  const jettonLoser = losingPositions.find(p => {
+  // Jetton Losing positions (Strictly exclude TON and official GRAM)
+  const jettonLosingPositions = validPositions.filter(p => {
     const sym = (p.symbol || '').toUpperCase();
-    return sym !== 'TON' && sym !== 'GRAM';
+    return p.pnlStatus === 'loss' && sym !== 'TON' && sym !== 'GRAM';
   });
-  if (jettonLoser) {
-    biggestLoser = jettonLoser;
+  
+  jettonLosingPositions.sort((a, b) => (a.estimatedPnlPercent || 0) - (b.estimatedPnlPercent || 0));
+  
+  let biggestLoser = jettonLosingPositions.length > 0 ? jettonLosingPositions[0] : null;
+  
+  // If no losing Jetton found, pick any Jetton position (excluding TON and GRAM)
+  if (!biggestLoser) {
+    const otherJettons = validPositions.filter(p => {
+      const sym = (p.symbol || '').toUpperCase();
+      return sym !== 'TON' && sym !== 'GRAM';
+    });
+    if (otherJettons.length > 0) {
+      otherJettons.sort((a, b) => (a.estimatedPnlPercent || 0) - (b.estimatedPnlPercent || 0));
+      biggestLoser = otherJettons[0];
+    }
   }
 
   // Winning positions
@@ -107,7 +116,7 @@ export function analyzeWallet(rawData) {
     estimatedPnlPercent: overallPnlPercent,
     ignoredTokensCount,
     totalPositionsCount: validPositions.length,
-    losingPositionsCount: losingPositions.length,
+    losingPositionsCount: jettonLosingPositions.length,
     winningPositionsCount: winningPositions.length,
     biggestBag,
     biggestLoser,
