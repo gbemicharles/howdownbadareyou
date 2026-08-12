@@ -1,109 +1,86 @@
 /**
- * Roast & Meme Text Engine
- * Generates savage, hilarious, sarcastic, dark humor roasts for position highlights,
- * contextual tokens (Pedro, Vampepe, NOT, DOGS, USDT), and X sharing intent text.
+ * Roast Generator Service
+ * Combines wallet analysis, scores, and templates to generate hilarious, shareable roasts.
  */
 
-const WORST_DECISION_ROASTS = [
-  "You didn't buy the dip. You caught a falling knife with your teeth 💀",
-  "Satoshi invented Bitcoin to free humanity, and you used TON to fund a scammer's Dubai rental lambo 🚗💨",
-  "This chart isn't a dip, it's a crime scene. Even your local McDonald's won't accept this trading resume 🍟",
-  "Somewhere in Dubai, a Telegram dev is drinking Dom Pérignon bought with your life savings 🍾",
-  "You held this position through -90%, -95%, and -99%. At this point, it's not an investment, it's hostage syndrome 🫡",
-  "Bought near the peak, held through the bedrock floor. True craftsmanship in money-burning 🕯️",
-  "This trade single-handedly lowered the average IQ of the entire TON blockchain 🧠📉",
-  "Your financial advisor took one look at this position and blocked your phone number 📞❌"
+const ROAST_VARIATIONS = [
+  {
+    primary: "Your portfolio looks like a crime scene where the only victims are your savings. You bought every single peak and sold every single bottom with mathematical precision.",
+    tweet: "My TON wallet score: {score}% DOWN BAD 💀\n\n'You didn't buy the dip. You caught a falling knife with your teeth.'\n\nCheck how down bad your wallet is on Telegram 👇\nhttps://t.me/howdownbadareyoubot #TON #Web3"
+  },
+  {
+    primary: "Holding this many dead Jettons requires a level of emotional attachment usually reserved for stray dogs. Half of these tokens haven't had a buy order since last Tuesday.",
+    tweet: "Apparently diversification was FUD 💀\n\nMy TON wallet is {score}% down bad!\nPersonality: {title}\n\nRoast your financial decisions on Telegram 👇\nhttps://t.me/howdownbadareyoubot #TON #Web3"
+  },
+  {
+    primary: "You didn't just buy the dip — you financed the entire canyon. If copium was a currency, you'd be Forbes 30 Under 30.",
+    tweet: "I just checked my TON wallet on How Down Bad Are You? 💀\n\nResult: {score}% DOWN BAD\nEmotional damage: 100/100 😭\n\nCheck yours on Telegram 👇\nhttps://t.me/howdownbadareyoubot #TON #Web3"
+  }
 ];
 
-const SAVING_GRACE_ROASTS = [
-  "Your single green token is carrying this entire wallet harder than Messi carried Argentina 🇦🇷",
-  "Don't get cocky. One accidental 2x doesn't fix 47 rugpulls and a broken bank balance 💀",
-  "You accidentally made money. Quickly sell before your inner degen buys a token called $ELON-DOGE-INU 🚀",
-  "The lone green candle floating in a sea of blood, tears, and bad decisions.",
-  "Your wallet has 1 win and 200 losses. You're basically the Detroit Lions of crypto 🏈"
-];
+export function generateRoasts(analysisOrParams, personalityObj, scoreDataObj) {
+  let walletAddress = "";
+  let totalCurrentValueUsd = 0;
+  let estimatedPnlUsd = 0;
+  let downBadScore = 0;
+  let isProfitable = false;
+  let levelText = "";
+  let personalityTitle = "";
+  let biggestBagSymbol = "";
+  let biggestLoserSymbol = "";
 
-const GENERAL_ROAST_TAGLINES = [
-  "We ran your wallet through our diagnostic scanner and the scanner asked for psychological support 💀",
-  "Your wallet belongs in an artistic museum of financial tragedy right next to BitConnect 🏛️",
-  "Satoshi didn't die for your portfolio to look like a red crime scene tape 🚨",
-  "We investigated your financial decisions so your therapist doesn't have to.",
-  "If holding heavy bags was an Olympic sport, you'd be wearing 14 gold medals 🥇🎒",
-  "You swapped real hard-earned cash for digital raccoon dust. Your parents are changing their will 📜💀"
-];
-
-const TOKEN_SPECIFIC_ROASTS = {
-  PEDRO: "Ah, $PEDRO. Nothing screams sound macroeconomic policy like trading raccoon memes at 3 AM 🦝💀",
-  VAMPEPE: "VAMPEPE token... because normal Pepe wasn't vampire enough to suck out the last 5% of your net worth 🧛‍♂️📉",
-  NOT: "Notcoin... literally named 'NOT' money, yet you were shocked when it acted like not money 💀",
-  DOGS: "DOGS token. You traded hard-earned fiat for a Telegram sticker dog. Woof 🐶📉",
-  HMSTR: "Hamster Kombat... you tapped a phone screen 5,000 times for $0.12 worth of dust 🐹💀",
-  USDT: "Holding USDT on a degen app... Bro is playing it safe while the rest of his wallet burns 💵🛡️",
-  GRAM: "TON/GRAM token... Durov's gift to humanity, and your gift to the DEX liquidity pools 💎🫡"
-};
-
-export function generateRoasts(analysis, personality, scoreData) {
-  let worstDecisionRoast = selectRoast(WORST_DECISION_ROASTS, analysis.walletAddress, 1);
-  let savingGraceRoast = selectRoast(SAVING_GRACE_ROASTS, analysis.walletAddress, 2);
-  const generalTagline = selectRoast(GENERAL_ROAST_TAGLINES, analysis.walletAddress, 3);
-
-  // Inject token-specific roasts if user holds iconic memecoins (Pedro, Vampepe, NOT, DOGS)
-  if (analysis.biggestLoser) {
-    const sym = (analysis.biggestLoser.symbol || "").toUpperCase();
-    if (TOKEN_SPECIFIC_ROASTS[sym]) {
-      worstDecisionRoast = TOKEN_SPECIFIC_ROASTS[sym];
-    }
+  if (personalityObj && scoreDataObj) {
+    // Called as: generateRoasts(analysis, scoreData.personality, scoreData)
+    walletAddress = analysisOrParams.walletAddress || "";
+    totalCurrentValueUsd = analysisOrParams.totalCurrentValueUsd || 0;
+    estimatedPnlUsd = analysisOrParams.estimatedPnlUsd || 0;
+    downBadScore = scoreDataObj.downBadScore || 0;
+    isProfitable = scoreDataObj.isProfitable || false;
+    levelText = scoreDataObj.levelText || "";
+    personalityTitle = personalityObj.title || "";
+    biggestBagSymbol = analysisOrParams.biggestBag?.symbol || "";
+    biggestLoserSymbol = analysisOrParams.biggestLoser?.symbol || "";
+  } else {
+    // Called with single params object
+    walletAddress = analysisOrParams.walletAddress || "";
+    totalCurrentValueUsd = analysisOrParams.totalCurrentValueUsd || 0;
+    estimatedPnlUsd = analysisOrParams.estimatedPnlUsd || 0;
+    downBadScore = analysisOrParams.downBadScore || 0;
+    isProfitable = analysisOrParams.isProfitable || false;
+    levelText = analysisOrParams.levelText || "";
+    personalityTitle = analysisOrParams.personalityTitle || (analysisOrParams.personality?.title || "");
+    biggestBagSymbol = analysisOrParams.biggestBagSymbol || analysisOrParams.biggestBag?.symbol || "";
+    biggestLoserSymbol = analysisOrParams.biggestLoserSymbol || analysisOrParams.biggestLoser?.symbol || "";
   }
 
-  if (analysis.biggestWinner) {
-    const sym = (analysis.biggestWinner.symbol || "").toUpperCase();
-    if (TOKEN_SPECIFIC_ROASTS[sym]) {
-      savingGraceRoast = TOKEN_SPECIFIC_ROASTS[sym];
-    }
+  let primaryRoast = "";
+
+  if (isProfitable) {
+    primaryRoast = `Unbelievable. You actually made profit in this market. While everyone else is breathing medical-grade Copium, your portfolio is up. Enjoy the green candles before the dev pulls the liquidity pool.`;
+  } else if (downBadScore >= 80) {
+    primaryRoast = `Grandmaster Exit Liquidity Provider! You have managed to hold every single meme Jetton to absolute zero. If there was an Olympic medal for catching falling knives with your teeth, you'd be a national hero.`;
+  } else if (downBadScore >= 50) {
+    primaryRoast = `Solidly Down Bad. Your portfolio is a graveyard of abandoned Telegram meme coins. Your biggest hope right now is that a random dev wakes up and decides to pump $${biggestBagSymbol || 'TON'} by 50,000%.`;
+  } else {
+    primaryRoast = `Surviving, but barely. You've avoided total annihilation so far, but holding $${biggestLoserSymbol || 'tokens'} shows you still have a soft spot for financial self-harm.`;
   }
 
-  // Generate X (Twitter) Tweet Share Intent Text
-  const tweetText = generateTweetText(analysis, personality, scoreData);
+  const tweetText = generateTweetText({ downBadScore, isProfitable, levelText, personalityTitle, walletAddress });
 
   return {
-    worstDecisionRoast,
-    savingGraceRoast,
-    generalTagline,
+    primaryRoast,
     tweetText
   };
 }
 
-function selectRoast(arr, seedStr, offset) {
-  let hash = offset;
-  for (let i = 0; i < seedStr.length; i++) {
-    hash = (hash * 31 + seedStr.charCodeAt(i)) % 10007;
-  }
-  return arr[hash % arr.length];
-}
+function generateTweetText(params) {
+  const { downBadScore, isProfitable, levelText, personalityTitle, walletAddress } = params;
 
-function generateTweetText(analysis, personality, scoreData) {
-  const score = scoreData.downBadScore;
-  const isProfitable = scoreData.isProfitable;
-  const isBreakeven = scoreData.isBreakeven;
-  const damage = scoreData.metrics.emotionalDamage;
-
-  if (isBreakeven) {
-    return `I just checked my TON wallet on How Down Bad Are You? 💀\n\nResult: 0% DOWN BAD ⚖️ (Breakeven)\nPersonality: THE BREAKEVEN SURVIVOR\nEmotional Damage: 0/100 🛡️\n\nNet $0 gain, net $0 loss. Check yours 👇\nhttps://howdownbadareyou.com`;
-  }
+  const addrShort = walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : "TON Wallet";
 
   if (isProfitable) {
-    return `I just checked my TON wallet on How Down Bad Are You? 💀\n\nResult: ${scoreData.levelText}\nPersonality: ${personality.title}\nExit Probability: ${scoreData.metrics.exitProbability}\n\nAm I actually winning? Check yours 👇\nhttps://howdownbadareyou.com`;
+    return `I just checked my TON wallet (${addrShort}) on How Down Bad Are You? 💀\n\nResult: ${levelText || 'PROFIT SURVIVOR'}\nPersonality: ${personalityTitle || 'SURVIVOR'}\n\nAm I actually winning? Check yours on Telegram 👇\nhttps://t.me/howdownbadareyoubot #TON #Web3`;
   }
 
-  const templates = [
-    `I just checked my TON wallet on How Down Bad Are You? 💀\n\nApparently I'm ${score}% down bad.\nEmotional damage: ${damage}/100 😭\nDiagnosis: "${personality.tagline}"\n\nCheck yours 👇\nhttps://howdownbadareyou.com`,
-    `Apparently diversification was FUD 💀\n\nMy TON wallet is ${score}% down bad!\nPersonality: ${personality.title}\n\nRoast your financial decisions here 👇\nhttps://howdownbadareyou.com`,
-    `My TON wallet score: ${score}% DOWN BAD 💀\n\n"You didn't buy the dip. You caught a falling knife with your teeth."\n\nCheck how down bad your wallet is 👇\nhttps://howdownbadareyou.com`
-  ];
-
-  let hash = 0;
-  for (let i = 0; i < analysis.walletAddress.length; i++) {
-    hash += analysis.walletAddress.charCodeAt(i);
-  }
-  return templates[hash % templates.length];
+  return `I just checked my TON wallet (${addrShort}) on How Down Bad Are You? 💀\n\nResult: ${downBadScore || 0}% DOWN BAD 😭\nPersonality: ${personalityTitle || 'BAG HOLDER'}\n\nRoast your financial decisions on Telegram 👇\nhttps://t.me/howdownbadareyoubot #TON #Web3`;
 }

@@ -35,10 +35,10 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
   const duelCardRef = useRef(null);
 
   const handleInputFocus = (e) => {
-    // Auto-scroll input to center so soft keyboard never covers it on mobile
+    const el = e.target;
     setTimeout(() => {
-      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 150);
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
   };
 
   const handleRandomizePedro = () => {
@@ -55,7 +55,12 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
     try {
       const res = await fetch(`/api/roast/${encodeURIComponent(addr.trim())}`);
       if (res.ok) {
-        return await res.json();
+        const data = await res.json();
+        // Ensure downBadScore fallback
+        if (data.downBadScore === undefined || data.downBadScore === null) {
+          data.downBadScore = 0;
+        }
+        return data;
       }
     } catch (e) {
       // Fallback to client-side pipeline
@@ -67,13 +72,13 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
     const scoreData = calculatePersonalityAndScores(analysis);
     return {
       walletAddress: addr.trim(),
-      totalCurrentValueUsd: analysis.totalCurrentValueUsd,
-      estimatedPnlUsd: analysis.estimatedPnlUsd,
-      estimatedPnlPercent: analysis.estimatedPnlPercent,
-      downBadScore: scoreData.downBadScore,
-      isProfitable: scoreData.isProfitable,
-      levelText: scoreData.levelText,
-      personality: scoreData.personality
+      totalCurrentValueUsd: analysis.totalCurrentValueUsd || 0,
+      estimatedPnlUsd: analysis.estimatedPnlUsd || 0,
+      estimatedPnlPercent: analysis.estimatedPnlPercent || 0,
+      downBadScore: scoreData.downBadScore ?? 0,
+      isProfitable: scoreData.isProfitable ?? false,
+      levelText: scoreData.levelText || "THE BREAKEVEN SURVIVOR",
+      personality: scoreData.personality || { title: "THE BREAKEVEN SURVIVOR ⚖️" }
     };
   };
 
@@ -171,9 +176,9 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
   }).format(num || 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-lg overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-lg overflow-y-auto">
       
-      <div className="max-w-3xl w-full bg-slate-950/95 border border-purple-500/30 rounded-3xl p-5 sm:p-7 space-y-5 relative shadow-2xl my-8">
+      <div className="max-w-3xl w-full bg-slate-950/95 border border-purple-500/30 rounded-3xl p-4 sm:p-7 space-y-4 relative shadow-2xl my-6 pb-20 sm:pb-7">
         
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -184,11 +189,11 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
               </div>
             </div>
             <div>
-              <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+              <h3 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
                 WALLET DUEL BATTLE ⚔️
               </h3>
-              <p className="text-xs font-bold text-slate-400">
-                16:9 Landscape Battle Card formatted for Twitter/X posts!
+              <p className="text-[11px] sm:text-xs font-bold text-slate-400">
+                16:9 Side-by-Side Landscape Battle Card!
               </p>
             </div>
           </div>
@@ -201,34 +206,36 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
           </button>
         </div>
 
-        {/* INPUT FORM FOR WALLET A & B WITH AUTO-SCROLL ON FOCUS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+        {/* INPUT FORM FOR WALLET A & B WITH ENHANCED AUTO-SCROLL */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-900/60 p-3 sm:p-4 rounded-2xl border border-slate-800">
           
           <div className="space-y-1">
-            <label className="text-xs font-black uppercase tracking-wider text-pink-400 flex items-center gap-1">
+            <label className="text-[11px] font-black uppercase tracking-wider text-pink-400 flex items-center gap-1">
               <span>PLAYER 1 (WALLET A):</span>
             </label>
             <input 
               type="text" 
               value={addressA} 
               onFocus={handleInputFocus}
+              onClick={handleInputFocus}
               onChange={(e) => setAddressA(e.target.value)} 
               placeholder="Paste TON wallet A or DNS..." 
-              className="w-full bg-slate-950 border border-slate-800 focus:border-pink-500 text-white rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none"
+              className="w-full bg-slate-950 border border-slate-800 focus:border-pink-500 text-white rounded-xl px-3 py-2.5 text-xs font-mono font-bold focus:outline-none"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-black uppercase tracking-wider text-cyan-400 flex items-center gap-1">
+            <label className="text-[11px] font-black uppercase tracking-wider text-cyan-400 flex items-center gap-1">
               <span>PLAYER 2 (WALLET B):</span>
             </label>
             <input 
               type="text" 
               value={addressB} 
               onFocus={handleInputFocus}
+              onClick={handleInputFocus}
               onChange={(e) => setAddressB(e.target.value)} 
               placeholder="Paste TON wallet B or DNS..." 
-              className="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 text-white rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none"
+              className="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 text-white rounded-xl px-3 py-2.5 text-xs font-mono font-bold focus:outline-none"
             />
           </div>
 
@@ -244,7 +251,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
         <button
           onClick={handleRunDuel}
           disabled={isLoading}
-          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-500 hover:from-pink-500 hover:to-cyan-400 text-white font-black text-sm tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-purple-600/30 transition-all cursor-pointer disabled:opacity-50"
+          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-500 hover:from-pink-500 hover:to-cyan-400 text-white font-black text-xs sm:text-sm tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-purple-600/30 transition-all cursor-pointer disabled:opacity-50"
         >
           {isLoading ? (
             <>
@@ -268,76 +275,76 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
               <button
                 onClick={handleRandomizePedro}
                 disabled={isShuffling}
-                className="px-3 py-1 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-extrabold text-xs flex items-center gap-1.5 hover:bg-slate-800 transition-colors cursor-pointer"
+                className="px-3 py-1 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-extrabold text-[11px] flex items-center gap-1.5 hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <Shuffle className={`w-3.5 h-3.5 ${isShuffling ? 'animate-spin' : ''}`} />
                 <span>RANDOMIZE PEDRO POSE 🎲</span>
               </button>
             </div>
             
-            {/* ---------------- 16:9 LANDSCAPE EXPORTABLE BATTLE CARD CANVAS ---------------- */}
+            {/* ---------------- 16:9 SIDE-BY-SIDE EXPORTABLE BATTLE CARD CANVAS ---------------- */}
             <div className="overflow-hidden rounded-3xl border-2 border-purple-500/30 shadow-2xl relative">
               <div 
                 ref={duelCardRef} 
-                className="w-full bg-[#090a0f] p-5 sm:p-7 space-y-4 relative text-slate-100 font-sans min-h-[360px] flex flex-col justify-between"
+                className="w-full bg-[#090a0f] p-4 sm:p-6 space-y-3 relative text-slate-100 font-sans min-h-[320px] flex flex-col justify-between"
               >
                 {/* Header Watermark */}
-                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5 font-sans">
-                  <div className="flex items-center gap-2 text-xs font-black text-white">
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2 font-sans">
+                  <div className="flex items-center gap-2 text-[11px] sm:text-xs font-black text-white">
                     <Swords className="w-4 h-4 text-pink-400" />
                     <span>WALLET DUEL BATTLE RESULT ⚔️</span>
                   </div>
                   <div className="text-right font-mono">
-                    <span className="text-[10px] font-extrabold text-pink-400 uppercase tracking-widest block">
+                    <span className="text-[9px] font-extrabold text-pink-400 uppercase tracking-widest block">
                       T.ME/HOWDOWNBADAREYOUBOT
                     </span>
-                    <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">
+                    <span className="text-[7px] font-bold text-slate-500 uppercase tracking-wider block">
                       MADE BY GBEMICHARLES
                     </span>
                   </div>
                 </div>
 
-                {/* SIDE-BY-SIDE CARDS */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-auto">
+                {/* STRICT SIDE-BY-SIDE CARDS (grid-cols-2 ON ALL SCREENS) */}
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 my-auto">
                   
                   {/* WALLET A CARD (PLAYER 1) */}
-                  <div className={`p-4 rounded-2xl border space-y-2 relative overflow-hidden ${
+                  <div className={`p-2.5 sm:p-4 rounded-2xl border space-y-1.5 relative overflow-hidden ${
                     duelResult.winner === 'A' 
                       ? 'bg-gradient-to-b from-pink-950/50 via-slate-950 to-slate-950 border-pink-500/60 shadow-lg shadow-pink-500/20' 
                       : 'bg-slate-900/60 border-slate-800'
                   }`}>
                     {duelResult.winner === 'A' && (
-                      <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/40 font-black text-[9px] uppercase flex items-center gap-1 shadow-md">
-                        <Crown className="w-3 h-3 text-amber-400 animate-bounce" />
-                        DOWN BAD CHAMPION 👑
+                      <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/40 font-black text-[7px] sm:text-[9px] uppercase flex items-center gap-0.5 shadow-md">
+                        <Crown className="w-2.5 h-2.5 text-amber-400 animate-bounce" />
+                        CHAMPION 👑
                       </span>
                     )}
 
                     <div className="space-y-0.5">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">PLAYER 1</span>
-                      <div className="font-mono text-xs font-bold text-white truncate max-w-[190px]">{duelResult.walletAData.walletAddress}</div>
+                      <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-slate-400">PLAYER 1</span>
+                      <div className="font-mono text-[10px] sm:text-xs font-bold text-white truncate max-w-full">{duelResult.walletAData.walletAddress}</div>
                     </div>
 
                     <div className="text-center py-1">
-                      <div className={`text-2xl sm:text-3xl font-black font-mono ${
+                      <div className={`text-sm sm:text-2xl font-black font-mono leading-tight ${
                         duelResult.walletAData.isProfitable ? 'text-emerald-400' : 'text-pink-500'
                       }`}>
                         {duelResult.walletAData.isProfitable 
                           ? `+${Math.round(duelResult.walletAData.estimatedPnlPercent || 0)}% UP BAD` 
-                          : (duelResult.walletAData.downBadScore === 0 ? '0% DOWN BAD' : `${duelResult.walletAData.downBadScore}% DOWN BAD`)}
+                          : `${duelResult.walletAData.downBadScore ?? 0}% DOWN BAD`}
                       </div>
-                      <div className="text-[11px] font-bold text-purple-300 truncate">
-                        {duelResult.walletAData.personality?.title || duelResult.walletAData.levelText}
+                      <div className="text-[9px] sm:text-[11px] font-bold text-purple-300 truncate">
+                        {duelResult.walletAData.personality?.title || duelResult.walletAData.levelText || "SURVIVOR"}
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-center text-[11px] font-mono border-t border-slate-800/80 pt-2">
+                    <div className="grid grid-cols-2 gap-1 text-center text-[9px] sm:text-[11px] font-mono border-t border-slate-800/80 pt-1.5">
                       <div>
-                        <span className="text-[8px] text-slate-400 block uppercase">Holdings</span>
+                        <span className="text-[7px] sm:text-[8px] text-slate-400 block uppercase">Holdings</span>
                         <span className="font-bold text-white">{formatUsd(duelResult.walletAData.totalCurrentValueUsd)}</span>
                       </div>
                       <div>
-                        <span className="text-[8px] text-slate-400 block uppercase">Est. P&L</span>
+                        <span className="text-[7px] sm:text-[8px] text-slate-400 block uppercase">Est. P&L</span>
                         <span className={`font-bold ${duelResult.walletAData.estimatedPnlUsd >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                           {formatUsd(duelResult.walletAData.estimatedPnlUsd)}
                         </span>
@@ -346,43 +353,43 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
                   </div>
 
                   {/* WALLET B CARD (PLAYER 2) */}
-                  <div className={`p-4 rounded-2xl border space-y-2 relative overflow-hidden ${
+                  <div className={`p-2.5 sm:p-4 rounded-2xl border space-y-1.5 relative overflow-hidden ${
                     duelResult.winner === 'B' 
                       ? 'bg-gradient-to-b from-pink-950/50 via-slate-950 to-slate-950 border-pink-500/60 shadow-lg shadow-pink-500/20' 
                       : 'bg-slate-900/60 border-slate-800'
                   }`}>
                     {duelResult.winner === 'B' && (
-                      <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/40 font-black text-[9px] uppercase flex items-center gap-1 shadow-md">
-                        <Crown className="w-3 h-3 text-amber-400 animate-bounce" />
-                        DOWN BAD CHAMPION 👑
+                      <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/40 font-black text-[7px] sm:text-[9px] uppercase flex items-center gap-0.5 shadow-md">
+                        <Crown className="w-2.5 h-2.5 text-amber-400 animate-bounce" />
+                        CHAMPION 👑
                       </span>
                     )}
 
                     <div className="space-y-0.5">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">PLAYER 2</span>
-                      <div className="font-mono text-xs font-bold text-white truncate max-w-[190px]">{duelResult.walletBData.walletAddress}</div>
+                      <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-slate-400">PLAYER 2</span>
+                      <div className="font-mono text-[10px] sm:text-xs font-bold text-white truncate max-w-full">{duelResult.walletBData.walletAddress}</div>
                     </div>
 
                     <div className="text-center py-1">
-                      <div className={`text-2xl sm:text-3xl font-black font-mono ${
+                      <div className={`text-sm sm:text-2xl font-black font-mono leading-tight ${
                         duelResult.walletBData.isProfitable ? 'text-emerald-400' : 'text-pink-500'
                       }`}>
                         {duelResult.walletBData.isProfitable 
                           ? `+${Math.round(duelResult.walletBData.estimatedPnlPercent || 0)}% UP BAD` 
-                          : (duelResult.walletBData.downBadScore === 0 ? '0% DOWN BAD' : `${duelResult.walletBData.downBadScore}% DOWN BAD`)}
+                          : `${duelResult.walletBData.downBadScore ?? 0}% DOWN BAD`}
                       </div>
-                      <div className="text-[11px] font-bold text-purple-300 truncate">
-                        {duelResult.walletBData.personality?.title || duelResult.walletBData.levelText}
+                      <div className="text-[9px] sm:text-[11px] font-bold text-purple-300 truncate">
+                        {duelResult.walletBData.personality?.title || duelResult.walletBData.levelText || "SURVIVOR"}
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-center text-[11px] font-mono border-t border-slate-800/80 pt-2">
+                    <div className="grid grid-cols-2 gap-1 text-center text-[9px] sm:text-[11px] font-mono border-t border-slate-800/80 pt-1.5">
                       <div>
-                        <span className="text-[8px] text-slate-400 block uppercase">Holdings</span>
+                        <span className="text-[7px] sm:text-[8px] text-slate-400 block uppercase">Holdings</span>
                         <span className="font-bold text-white">{formatUsd(duelResult.walletBData.totalCurrentValueUsd)}</span>
                       </div>
                       <div>
-                        <span className="text-[8px] text-slate-400 block uppercase">Est. P&L</span>
+                        <span className="text-[7px] sm:text-[8px] text-slate-400 block uppercase">Est. P&L</span>
                         <span className={`font-bold ${duelResult.walletBData.estimatedPnlUsd >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                           {formatUsd(duelResult.walletBData.estimatedPnlUsd)}
                         </span>
@@ -393,21 +400,21 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
                 </div>
 
                 {/* BATTLE DIAGNOSIS & NATIVE PEDRO RACCOON CHARACTER */}
-                <div className="grid grid-cols-12 gap-3 items-center bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-cyan-500/10 border-l-4 border-l-pink-500 p-3 rounded-2xl">
+                <div className="grid grid-cols-12 gap-2 sm:gap-3 items-center bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-cyan-500/10 border-l-4 border-l-pink-500 p-2.5 sm:p-3 rounded-2xl">
                   
                   {/* Commentary text */}
                   <div className="col-span-8 sm:col-span-9 space-y-0.5">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-pink-300 block">
+                    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-pink-300 block">
                       DUEL BATTLE DIAGNOSIS ⚔️
                     </span>
-                    <p className="text-[11px] sm:text-xs font-bold text-white italic leading-snug">
+                    <p className="text-[10px] sm:text-xs font-bold text-white italic leading-snug">
                       "{duelResult.battleCommentary}"
                     </p>
                   </div>
 
                   {/* 100% Transparent Pedro Raccoon Standing Natively inside Duel Card */}
                   <div className="col-span-4 sm:col-span-3 flex justify-end items-center relative">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 relative flex items-center justify-center">
+                    <div className="w-16 h-16 sm:w-24 sm:h-24 relative flex items-center justify-center">
                       <img 
                         src={currentPedroImg} 
                         alt="Pedro Raccoon Battle Referee" 
@@ -422,7 +429,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
               </div>
             </div>
-            {/* ---------------- END 16:9 LANDSCAPE CANVAS ---------------- */}
+            {/* ---------------- END 16:9 SIDE-BY-SIDE CANVAS ---------------- */}
 
             {/* ACTION BUTTONS ROW (DOWNLOAD IMAGE, COPY IMAGE, SHARE ON X) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
