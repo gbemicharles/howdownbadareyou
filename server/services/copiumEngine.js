@@ -1,6 +1,7 @@
 /**
  * Copium Calculator Engine (ATH Simulator)
  * Calculates simulated ATH portfolio values and generates hilarious copium roasts based on slider dosage (0% - 100%).
+ * Strictly calculates ATH recovery ONLY for tokens actually held in the user's wallet!
  */
 
 // Historical All-Time High (ATH) prices for major TON tokens
@@ -21,31 +22,34 @@ const ATH_PRICE_MAP = {
 };
 
 /**
- * Calculates ATH simulated values for a list of token positions
+ * Calculates ATH simulated values STRICTLY for token positions held in the user's wallet
  */
 export function calculateCopiumMetrics(positions = [], currentTotalUsd = 0) {
   let totalAthUsd = 0;
 
-  const positionsWithAth = positions.map(pos => {
+  // STRICTLY filter positions actually held in user's wallet (quantity > 0 or currentValueUsd > 0)
+  const heldPositions = positions.filter(pos => (pos.quantity && pos.quantity > 0) || (pos.currentValueUsd && pos.currentValueUsd > 0));
+
+  const positionsWithAth = heldPositions.map(pos => {
     const symUpper = pos.symbol ? pos.symbol.toUpperCase() : "TOKEN";
     const isStablecoin = symUpper === "USDT" || symUpper === "USD₮" || symUpper === "USDC" || symUpper === "JUSDT" || symUpper === "JUSDC";
 
-    let athPrice = pos.currentPriceUsd;
+    let athPrice = pos.currentPriceUsd || 0;
 
     if (isStablecoin) {
       athPrice = 1.00;
     } else if (ATH_PRICE_MAP[symUpper]) {
-      athPrice = Math.max(ATH_PRICE_MAP[symUpper], pos.currentPriceUsd);
+      athPrice = Math.max(ATH_PRICE_MAP[symUpper], pos.currentPriceUsd || 0);
     } else if (pos.currentPriceUsd > 0) {
-      // Default memecoin ATH multiplier (10x historical peak assumption)
-      athPrice = pos.currentPriceUsd * 10.0;
+      // Default held memecoin ATH multiplier (5x historical peak assumption)
+      athPrice = pos.currentPriceUsd * 5.0;
     } else {
-      athPrice = 0.001; // Speculative value for 0-price memecoins at 100% ATH
+      athPrice = pos.currentPriceUsd || 0;
     }
 
-    const currentVal = pos.currentValueUsd || (pos.quantity * pos.currentPriceUsd);
+    const currentVal = pos.currentValueUsd || (pos.quantity * (pos.currentPriceUsd || 0));
     const athVal = pos.quantity * athPrice;
-    const multiplier = currentVal > 0 ? (athVal / currentVal) : 10.0;
+    const multiplier = currentVal > 0 ? (athVal / currentVal) : (athPrice > (pos.currentPriceUsd || 0) ? 5.0 : 1.0);
 
     totalAthUsd += athVal;
 
@@ -67,8 +71,8 @@ export function calculateCopiumMetrics(positions = [], currentTotalUsd = 0) {
   return {
     currentTotalUsd,
     totalAthUsd,
-    athGainUsd: totalAthUsd - currentTotalUsd,
-    athMultiplier: currentTotalUsd > 0 ? parseFloat((totalAthUsd / currentTotalUsd).toFixed(1)) : 5.0,
+    athGainUsd: Math.max(0, totalAthUsd - currentTotalUsd),
+    athMultiplier: currentTotalUsd > 0 ? parseFloat((totalAthUsd / currentTotalUsd).toFixed(1)) : 2.5,
     positions: positionsWithAth
   };
 }
@@ -79,7 +83,7 @@ export function calculateCopiumMetrics(positions = [], currentTotalUsd = 0) {
 export function getCopiumRoast(copiumDose, currentUsd, athUsd, topSymbol = "MEME") {
   const simulatedUsd = currentUsd + ((athUsd - currentUsd) * (copiumDose / 100));
 
-  const formatUsd = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
+  const formatUsd = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num || 0);
 
   if (copiumDose === 0) {
     return {
@@ -103,13 +107,13 @@ export function getCopiumRoast(copiumDose, currentUsd, athUsd, topSymbol = "MEME
     return {
       title: "75% COPIUM: Heavy Delusion 🛸",
       simulatedUsd,
-      roast: `High Copium level: Portfolio hits ${formatUsd(simulatedUsd)}! You start browsing used 2014 Hondas and typing 'wAGMI' in Telegram groups.`
+      roast: `High Copium level: Portfolio hits ${formatUsd(simulatedUsd)}! You start browsing used 2014 Hondas and typing 'WAGMI' in Telegram groups.`
     };
   } else {
     return {
       title: "100% LETHAL COPIUM: Pure Fantasy 🚀👑",
       simulatedUsd,
-      roast: `100% PURE LETHAL COPIUM INHALED! If all your tokens hit ATH, your portfolio reaches ${formatUsd(simulatedUsd)}! You are 1 green candle away from buying a Lambo and renting a yacht in Dubai 😭`
+      roast: `100% PURE LETHAL COPIUM INHALED! If all your held tokens hit ATH, your portfolio reaches ${formatUsd(simulatedUsd)}! You are 1 green candle away from buying a Lambo and renting a yacht in Dubai 😭`
     };
   }
 }
