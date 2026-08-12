@@ -1,14 +1,27 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { toPng, toBlob } from 'html-to-image';
-import { X, Swords, Trophy, Skull, Share2, Loader2, Sparkles, Crown, Download, Copy, Check } from 'lucide-react';
+import { X, Swords, Trophy, Skull, Share2, Loader2, Sparkles, Crown, Download, Copy, Check, Shuffle } from 'lucide-react';
 import { compareWalletsForDuel } from '../../server/services/duelEngine';
 import { getWalletRawData } from '../../server/services/tonProvider';
 import { analyzeWallet } from '../../server/services/walletAnalyzer';
 import { calculatePersonalityAndScores } from '../../server/services/personalityEngine';
 
+const PEDRO_KEYS = ['rockstar', 'rekt', 'copium', 'wizard', 'clown', 'diamond', 'rocket'];
+
+const PEDRO_CHARACTER_ARTS = {
+  rekt: '/assets/pedro/nobg/pedro_rekt.png',
+  copium: '/assets/pedro/nobg/pedro_copium.png',
+  wizard: '/assets/pedro/nobg/pedro_wizard.png',
+  clown: '/assets/pedro/nobg/pedro_clown.png',
+  diamond: '/assets/pedro/nobg/pedro_diamond.png',
+  rockstar: '/assets/pedro/nobg/pedro_rockstar.png',
+  rocket: '/assets/pedro/nobg/pedro_rocket.png'
+};
+
 export default function WalletDuelModal({ initialWalletA = '', onClose }) {
-  const [addressA, setAddressA] = useState(initialWalletA || 'EQBvW8Z5huBkMJYdnfAEMnTW9Xn1_Rrekt_Trader_Demo_01');
-  const [addressB, setAddressB] = useState('EQDWhale_Degen_Mega_Wallet_000999888777666555444');
+  // Empty default inputs - no hardcoded demo accounts
+  const [addressA, setAddressA] = useState(initialWalletA || '');
+  const [addressB, setAddressB] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingImg, setIsGeneratingImg] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
@@ -16,7 +29,20 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
   const [duelResult, setDuelResult] = useState(null);
   const [error, setError] = useState(null);
 
+  const [pedroKeyIndex, setPedroKeyIndex] = useState(0);
+  const [isShuffling, setIsShuffling] = useState(false);
+
   const duelCardRef = useRef(null);
+
+  const handleRandomizePedro = () => {
+    setIsShuffling(true);
+    const randomIndex = Math.floor(Math.random() * PEDRO_KEYS.length);
+    setPedroKeyIndex(randomIndex);
+    setTimeout(() => setIsShuffling(false), 400);
+  };
+
+  const currentPedroKey = PEDRO_KEYS[pedroKeyIndex] || 'rockstar';
+  const currentPedroImg = PEDRO_CHARACTER_ARTS[currentPedroKey] || PEDRO_CHARACTER_ARTS.rockstar;
 
   const fetchWalletRoastData = async (addr) => {
     try {
@@ -45,13 +71,14 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
   const handleRunDuel = async () => {
     if (!addressA.trim() || !addressB.trim()) {
-      setError("Please enter two valid TON wallet addresses!");
+      setError("Please enter two valid TON wallet addresses to duel!");
       return;
     }
 
     try {
       setIsLoading(true);
       setError(null);
+      handleRandomizePedro();
 
       const [dataA, dataB] = await Promise.all([
         fetchWalletRoastData(addressA.trim()),
@@ -176,7 +203,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
               type="text" 
               value={addressA} 
               onChange={(e) => setAddressA(e.target.value)} 
-              placeholder="Enter TON wallet A..." 
+              placeholder="Paste TON wallet A or DNS..." 
               className="w-full bg-slate-950 border border-slate-800 focus:border-pink-500 text-white rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none"
             />
           </div>
@@ -189,7 +216,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
               type="text" 
               value={addressB} 
               onChange={(e) => setAddressB(e.target.value)} 
-              placeholder="Enter TON wallet B..." 
+              placeholder="Paste TON wallet B or DNS..." 
               className="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 text-white rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none"
             />
           </div>
@@ -224,6 +251,18 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
         {/* DUEL BATTLE RESULT CONTAINER */}
         {duelResult && (
           <div className="space-y-6 pt-2 animate-fade-in">
+
+            {/* Randomize Pedro Pose Button */}
+            <div className="flex justify-end">
+              <button
+                onClick={handleRandomizePedro}
+                disabled={isShuffling}
+                className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-extrabold text-xs flex items-center gap-1.5 hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <Shuffle className={`w-3.5 h-3.5 ${isShuffling ? 'animate-spin' : ''}`} />
+                <span>RANDOMIZE PEDRO POSE 🎲</span>
+              </button>
+            </div>
             
             {/* ---------------- EXPORTABLE BATTLE CARD CANVAS ---------------- */}
             <div 
@@ -341,14 +380,32 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
               </div>
 
-              {/* BATTLE COMMENTARY CARD */}
-              <div className="bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-cyan-500/10 border-l-4 border-l-pink-500 p-4 rounded-2xl space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-pink-300 block">
-                  DUEL BATTLE DIAGNOSIS ⚔️
-                </span>
-                <p className="text-xs sm:text-sm font-bold text-white italic leading-relaxed">
-                  "{duelResult.battleCommentary}"
-                </p>
+              {/* BATTLE DIAGNOSIS & NATIVE PEDRO RACCOON CHARACTER */}
+              <div className="grid grid-cols-12 gap-4 items-center bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-cyan-500/10 border-l-4 border-l-pink-500 p-4 rounded-2xl">
+                
+                {/* Commentary text */}
+                <div className="col-span-8 sm:col-span-9 space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-pink-300 block">
+                    DUEL BATTLE DIAGNOSIS ⚔️
+                  </span>
+                  <p className="text-xs sm:text-sm font-bold text-white italic leading-relaxed">
+                    "{duelResult.battleCommentary}"
+                  </p>
+                </div>
+
+                {/* 100% Transparent Pedro Raccoon Standing Natively inside Duel Card */}
+                <div className="col-span-4 sm:col-span-3 flex justify-end items-center relative">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 relative flex items-center justify-center">
+                    <img 
+                      src={currentPedroImg} 
+                      alt="Pedro Raccoon Battle Referee" 
+                      className={`w-full h-full object-contain drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] scale-110 transition-all duration-300 ${
+                        isShuffling ? 'scale-90 opacity-40 rotate-6' : 'scale-110 opacity-100 rotate-0'
+                      }`}
+                    />
+                  </div>
+                </div>
+
               </div>
 
             </div>
