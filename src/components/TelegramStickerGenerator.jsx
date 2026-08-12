@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
-import { Download, Check, Loader2, Copy, Smile, Shuffle } from 'lucide-react';
+import { Download, Check, Loader2, Copy, Smile, Shuffle, ExternalLink } from 'lucide-react';
 
 const PEDRO_KEYS = ['rockstar', 'rekt', 'copium', 'wizard', 'clown', 'diamond', 'rocket'];
 
@@ -66,6 +66,34 @@ export default function TelegramStickerGenerator({ roastData }) {
 
   const activeKey = PEDRO_KEYS[pedroKeyIndex] || 'rockstar';
   const mascot = PEDRO_CHARACTER_ARTS[activeKey] || PEDRO_CHARACTER_ARTS.rockstar;
+
+  const handleSaveAndOpenStickersBot = async () => {
+    if (!stickerRef.current || isGenerating) return;
+    try {
+      setIsGenerating(true);
+      const blob = await toBlob(stickerRef.current, {
+        cacheBust: true,
+        pixelRatio: 3,
+        width: 512,
+        height: 512,
+        backgroundColor: '#090a0f'
+      });
+      await saveImageBlob(blob, `downbad-sticker-${walletAddress.slice(0, 6)}.png`);
+      setDownloadSuccess(true);
+      setTimeout(() => setDownloadSuccess(false), 3000);
+    } catch (err) {
+      console.error('Failed to save sticker:', err);
+    } finally {
+      setIsGenerating(false);
+    }
+    // Open @Stickers bot — use Telegram's native opener when inside the app
+    const tg = window.Telegram?.WebApp;
+    if (tg?.openTelegramLink) {
+      tg.openTelegramLink('https://t.me/Stickers');
+    } else {
+      window.open('https://t.me/Stickers', '_blank', 'noopener,noreferrer');
+    }
+  };
 
   const handleDownloadSticker = async () => {
     if (!stickerRef.current || isGenerating) return;
@@ -203,57 +231,53 @@ export default function TelegramStickerGenerator({ roastData }) {
 
         {/* CONTROLS & DESCRIPTION */}
         <div className="space-y-4">
-          <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-2 text-xs">
+
+          {/* Step-by-step guide */}
+          <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-3 text-xs">
             <span className="font-extrabold text-purple-300 uppercase tracking-wider block">
-              YOUR DOWN BAD STICKER: {mascot.title}
+              HOW TO ADD TO YOUR STICKER PACK 📦
             </span>
-            <p className="text-slate-400 font-medium leading-relaxed">
-              Click <strong>RANDOMIZE STICKER 🎲</strong> to shuffle Pedro raccoon poses, then export your 512x512 PNG Telegram sticker to share your Down Bad score in chat groups!
-            </p>
+            <ol className="space-y-2 text-slate-300 font-medium leading-relaxed list-none">
+              {[
+                ['1', 'Tap "SAVE & OPEN @Stickers" below — it saves your sticker and opens the Stickers bot.'],
+                ['2', 'In @Stickers bot, send /addsticker (or /newpack to create one first).'],
+                ['3', 'Send the saved PNG file when the bot asks for the sticker image.'],
+                ['4', 'Send an emoji (e.g. 💀) as the label, then /done.'],
+                ['5', 'Your sticker is now in your pack — send it to any group! 🎉'],
+              ].map(([n, text]) => (
+                <li key={n} className="flex gap-2.5 items-start">
+                  <span className="w-5 h-5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5">{n}</span>
+                  <span>{text}</span>
+                </li>
+              ))}
+            </ol>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <button
-              onClick={handleDownloadSticker}
-              disabled={isGenerating}
-              className="px-4 py-3.5 rounded-2xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-pink-600/30 transition-all cursor-pointer disabled:opacity-50"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Exporting...</span>
-                </>
-              ) : downloadSuccess ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span>SAVED STICKER!</span>
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  <span>EXPORT STICKER (512x512) 📦</span>
-                </>
-              )}
-            </button>
+          {/* Primary CTA */}
+          <button
+            onClick={handleSaveAndOpenStickersBot}
+            disabled={isGenerating}
+            className="w-full px-4 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all cursor-pointer disabled:opacity-50"
+          >
+            {isGenerating ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /><span>Saving sticker...</span></>
+            ) : downloadSuccess ? (
+              <><Check className="w-4 h-4 text-emerald-400" /><span>SAVED! Opening @Stickers bot...</span></>
+            ) : (
+              <><ExternalLink className="w-4 h-4" /><span>SAVE & OPEN @Stickers BOT ✈️</span></>
+            )}
+          </button>
 
-            <button
-              onClick={handleCopySticker}
-              disabled={isGenerating}
-              className="px-4 py-3.5 rounded-2xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-            >
-              {copySuccess ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span>COPIED TO CLIPBOARD!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4 text-cyan-400" />
-                  <span>COPY STICKER 📋</span>
-                </>
-              )}
-            </button>
-          </div>
+          {/* Secondary: just download */}
+          <button
+            onClick={handleDownloadSticker}
+            disabled={isGenerating}
+            className="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-300 font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+          >
+            <Download className="w-4 h-4 text-pink-400" />
+            <span>JUST SAVE STICKER (512×512)</span>
+          </button>
+
         </div>
 
       </div>
