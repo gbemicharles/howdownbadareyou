@@ -117,9 +117,8 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
         <div className="overflow-hidden rounded-3xl border-2 border-amber-500/40 shadow-[0_0_40px_rgba(245,158,11,0.15)] relative">
           <div 
             ref={certRef}
-            className="w-full bg-[#0c0a04] p-5 sm:p-7 space-y-4 relative text-amber-100 font-serif overflow-hidden border-8 border-[#171408] flex flex-col justify-between"
+            className="w-full bg-[#0c0a04] p-5 sm:p-7 space-y-4 relative text-amber-100 font-serif overflow-hidden border-8 border-[#171408] min-h-[360px] flex flex-col justify-between"
             style={{
-              aspectRatio: '16/9',
               backgroundImage: 'radial-gradient(at 50% 10%, rgba(245,158,11,0.15) 0px, transparent 60%), radial-gradient(at 50% 90%, rgba(139,92,246,0.15) 0px, transparent 60%)'
             }}
           >

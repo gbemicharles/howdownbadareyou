@@ -198,8 +198,7 @@ export default function ResultCardModal({ roastData, onClose }) {
         <div className="overflow-hidden rounded-3xl border-2 border-slate-800/90 shadow-2xl relative">
           <div 
             ref={cardRef} 
-            className={`w-full ${activeThemeObj.class} p-6 sm:p-8 space-y-6 relative overflow-hidden text-slate-100 font-sans flex flex-col justify-between transition-all duration-500`}
-            style={{ aspectRatio: '16/9' }}
+            className={`w-full ${activeThemeObj.class} p-6 sm:p-8 space-y-6 relative overflow-hidden text-slate-100 font-sans min-h-[380px] flex flex-col justify-between transition-all duration-500`}
           >
             {/* Faint Glowing Chart Trend Line in Background */}
             <div className="absolute inset-0 pointer-events-none opacity-20">

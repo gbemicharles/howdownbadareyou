@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
-import { X, Swords, Trophy, Skull, Share2, Loader2, Sparkles, Crown, Download, Copy, Check, Shuffle } from 'lucide-react';
+import { X, Swords, Trophy, Skull, Share2, Loader2, Sparkles, Crown, Download, Copy, Check, Shuffle, ArrowLeft } from 'lucide-react';
 import { compareWalletsForDuel } from '../../server/services/duelEngine';
 import { getWalletRawData } from '../../server/services/tonProvider';
 import { analyzeWallet } from '../../server/services/walletAnalyzer';
@@ -428,8 +428,16 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
             </div>
             {/* ---------------- END 16:9 SIDE-BY-SIDE CANVAS ---------------- */}
 
-            {/* ACTION BUTTONS ROW (DOWNLOAD IMAGE, COPY IMAGE, SHARE ON X) */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+            {/* ACTION BUTTONS ROW (BACK, DOWNLOAD IMAGE, COPY IMAGE, SHARE ON X) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+
+              <button
+                onClick={() => setDuelResult(null)}
+                className="px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-300 font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>NEW DUEL</span>
+              </button>
               
               <button
                 onClick={handleDownloadDuelImg}
