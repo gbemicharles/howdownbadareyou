@@ -7,6 +7,7 @@
 }
 
 body {
+  overscroll-behavior: none;
   background-color: #07080c;
   background-image: 
     radial-gradient(at 15% 15%, rgba(255, 42, 133, 0.08) 0px, transparent 50%),
