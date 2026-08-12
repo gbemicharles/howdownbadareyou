@@ -84,7 +84,7 @@ export default function ResultCardModal({ roastData, onClose }) {
       setIsGenerating(true);
       const blob = await toBlob(cardRef.current, {
         cacheBust: true,
-        pixelRatio: 2,
+        pixelRatio: 3,
         backgroundColor: '#090a0f'
       });
 
@@ -105,7 +105,7 @@ export default function ResultCardModal({ roastData, onClose }) {
       setIsGenerating(true);
       const blob = await toBlob(cardRef.current, {
         cacheBust: true,
-        pixelRatio: 2,
+        pixelRatio: 3,
         backgroundColor: '#090a0f'
       });
 
@@ -126,11 +126,71 @@ export default function ResultCardModal({ roastData, onClose }) {
     }
   };
 
+  const [shareToast, setShareToast] = useState('');
+
+  const showToast = (msg) => {
+    setShareToast(msg);
+    setTimeout(() => setShareToast(''), 3500);
+  };
+
   const handlePostToXWithImage = async () => {
-    await handleCopyCardImage();
-    const tweetText = encodeURIComponent(`💀 Check out my TON Wallet Diagnosis report! I scored ${isProfitable ? 'PROFIT SURVIVOR' : `${downBadScore}% DOWN BAD`}.\n\nTest your wallet on Telegram at https://t.me/howdownbadareyoubot #TON #Web3`);
-    const intentUrl = `https://x.com/intent/tweet?text=${tweetText}`;
-    window.open(intentUrl, '_blank', 'noopener,noreferrer');
+    if (!cardRef.current || isGenerating) return;
+    try {
+      setIsGenerating(true);
+      const blob = await toBlob(cardRef.current, { cacheBust: true, pixelRatio: 3, backgroundColor: '#090a0f' });
+      await saveImageBlob(blob, `downbad-card-${walletAddress.slice(0, 6)}.png`);
+    } catch (e) {
+      console.error('X image save failed:', e);
+    } finally {
+      setIsGenerating(false);
+    }
+    const tweetText = encodeURIComponent(`💀 Check out my TON Wallet Diagnosis! I scored ${isProfitable ? 'PROFIT SURVIVOR' : `${downBadScore}% DOWN BAD`}.\n\nTest your wallet → https://t.me/howdownbadareyoubot #TON #Web3 #DeFi`);
+    window.open(`https://x.com/intent/tweet?text=${tweetText}`, '_blank', 'noopener,noreferrer');
+    showToast('Card saved! Attach it to your post on X 📎');
+  };
+
+  const handleShareToTelegramStory = async () => {
+    if (!cardRef.current || isGenerating) return;
+    try {
+      setIsGenerating(true);
+
+      // Generate card as blob → base64
+      const blob = await toBlob(cardRef.current, { cacheBust: true, pixelRatio: 3, backgroundColor: '#090a0f' });
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      // Upload to server to get a public URL
+      const res = await fetch('/api/share-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageData: base64, mimeType: 'image/png' })
+      });
+      const { url } = await res.json();
+
+      // Build absolute URL for Telegram
+      const absoluteUrl = `${window.location.origin}${url}`;
+
+      const tg = window.Telegram?.WebApp;
+      if (tg?.shareToStory) {
+        tg.shareToStory(absoluteUrl, {
+          text: `💀 I scored ${isProfitable ? 'PROFIT SURVIVOR' : `${downBadScore}% DOWN BAD`} on HOW DOWN BAD ARE YOU?\n\nCheck your wallet → t.me/howdownbadareyoubot`,
+          widget_link: { url: 'https://t.me/howdownbadareyoubot', name: 'HOW DOWN BAD ARE YOU?' }
+        });
+      } else {
+        // Fallback outside Telegram — just download
+        await saveImageBlob(blob, `downbad-card-${walletAddress.slice(0, 6)}.png`);
+        showToast('Open in Telegram to share to Status 📲');
+      }
+    } catch (e) {
+      console.error('Telegram story share failed:', e);
+      showToast('Failed to share. Try downloading instead.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const formatUsd = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num || 0);
@@ -356,16 +416,32 @@ export default function ResultCardModal({ roastData, onClose }) {
         </div>
         {/* ---------------- END REFERENCE MATCHED CANVAS ---------------- */}
 
+        {/* Toast notification */}
+        {shareToast && (
+          <div className="px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-cyan-300 text-center animate-fade-in">
+            {shareToast}
+          </div>
+        )}
+
         {/* Modal Action Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-          
+        <div className="grid grid-cols-2 gap-2.5 pt-1">
+
           <button
             onClick={handlePostToXWithImage}
             disabled={isGenerating}
-            className="px-4 py-3 rounded-2xl bg-black hover:bg-slate-900 border border-slate-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
+            className="px-4 py-3 rounded-2xl bg-black hover:bg-slate-900 border border-slate-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md disabled:opacity-50"
           >
-            <Share2 className="w-4 h-4 text-pink-400" />
-            <span>POST CARD ON X 🐦</span>
+            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4 text-pink-400" />}
+            <span>POST ON X 🐦</span>
+          </button>
+
+          <button
+            onClick={handleShareToTelegramStory}
+            disabled={isGenerating}
+            className="px-4 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all cursor-pointer disabled:opacity-50"
+          >
+            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+            <span>TELEGRAM STATUS ✈️</span>
           </button>
 
           <button
@@ -374,15 +450,9 @@ export default function ResultCardModal({ roastData, onClose }) {
             className="px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
           >
             {copySuccess ? (
-              <>
-                <Check className="w-4 h-4 text-emerald-400" />
-                <span>COPIED TO CLIPBOARD!</span>
-              </>
+              <><Check className="w-4 h-4 text-emerald-400" /><span>COPIED!</span></>
             ) : (
-              <>
-                <Copy className="w-4 h-4 text-cyan-400" />
-                <span>COPY CARD IMAGE 📋</span>
-              </>
+              <><Copy className="w-4 h-4 text-cyan-400" /><span>COPY IMAGE 📋</span></>
             )}
           </button>
 
@@ -392,20 +462,11 @@ export default function ResultCardModal({ roastData, onClose }) {
             className="px-4 py-3 rounded-2xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-pink-600/30 transition-all cursor-pointer disabled:opacity-50"
           >
             {isGenerating ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Generating...</span>
-              </>
+              <><Loader2 className="w-4 h-4 animate-spin" /><span>Generating...</span></>
             ) : downloadSuccess ? (
-              <>
-                <Check className="w-4 h-4 text-emerald-400" />
-                <span>SAVED CARD!</span>
-              </>
+              <><Check className="w-4 h-4 text-emerald-400" /><span>SAVED!</span></>
             ) : (
-              <>
-                <Download className="w-4 h-4" />
-                <span>DOWNLOAD CARD 🖼️</span>
-              </>
+              <><Download className="w-4 h-4" /><span>DOWNLOAD 🖼️</span></>
             )}
           </button>
 

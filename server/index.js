@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 import { isValidTonAddress, getWalletRawData, DEMO_WALLETS } from './services/tonProvider.js';
 import { analyzeWallet } from './services/walletAnalyzer.js';
 import { calculatePersonalityAndScores, getConcentrationComment } from './services/personalityEngine.js';
@@ -16,6 +17,43 @@ const isProd = process.env.NODE_ENV === 'production';
 app.use(cors());
 app.use(express.json());
 app.use(rateLimiterMiddleware);
+
+// ── Temp image store for Telegram Story sharing ──────────────────────────────
+const tempImages = new Map(); // id → { buf, mime, expiresAt }
+const TEMP_IMAGE_TTL = 10 * 60 * 1000; // 10 minutes
+
+app.use(express.json({ limit: '10mb' }));
+
+// Upload a card image (base64) and return a short-lived public URL
+app.post('/api/share-image', (req, res) => {
+  try {
+    const { imageData, mimeType = 'image/png' } = req.body;
+    if (!imageData) return res.status(400).json({ error: 'No imageData' });
+
+    const buf = Buffer.from(imageData.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+    const id = crypto.randomBytes(12).toString('hex');
+    tempImages.set(id, { buf, mime: mimeType, expiresAt: Date.now() + TEMP_IMAGE_TTL });
+
+    // Purge old entries
+    for (const [k, v] of tempImages) {
+      if (v.expiresAt < Date.now()) tempImages.delete(k);
+    }
+
+    res.json({ id, url: `/api/share-image/${id}` });
+  } catch (e) {
+    res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
+// Serve the uploaded image
+app.get('/api/share-image/:id', (req, res) => {
+  const entry = tempImages.get(req.params.id);
+  if (!entry || entry.expiresAt < Date.now()) return res.status(404).send('Not found');
+  res.set('Content-Type', entry.mime);
+  res.set('Cache-Control', 'no-store');
+  res.send(entry.buf);
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 // Get Demo Wallets endpoint
 app.get('/api/demos', (req, res) => {

@@ -116,7 +116,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
       setIsGeneratingImg(true);
       const blob = await toBlob(duelCardRef.current, {
         cacheBust: true,
-        pixelRatio: 2,
+        pixelRatio: 3,
         backgroundColor: '#090a0f'
       });
 
@@ -137,7 +137,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
       setIsGeneratingImg(true);
       const blob = await toBlob(duelCardRef.current, {
         cacheBust: true,
-        pixelRatio: 2,
+        pixelRatio: 3,
         backgroundColor: '#090a0f'
       });
 

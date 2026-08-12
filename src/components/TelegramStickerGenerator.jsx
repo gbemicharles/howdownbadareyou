@@ -74,7 +74,7 @@ export default function TelegramStickerGenerator({ roastData }) {
       setIsGenerating(true);
       const blob = await toBlob(stickerRef.current, {
         cacheBust: true,
-        pixelRatio: 2,
+        pixelRatio: 3,
         width: 512,
         height: 512,
         backgroundColor: '#090a0f'
@@ -97,7 +97,7 @@ export default function TelegramStickerGenerator({ roastData }) {
       setIsGenerating(true);
       const blob = await toBlob(stickerRef.current, {
         cacheBust: true,
-        pixelRatio: 2,
+        pixelRatio: 3,
         width: 512,
         height: 512,
         backgroundColor: '#090a0f'

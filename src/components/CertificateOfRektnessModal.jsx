@@ -33,7 +33,7 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
       setIsGenerating(true);
       const blob = await toBlob(certRef.current, {
         cacheBust: true,
-        pixelRatio: 2,
+        pixelRatio: 3,
         backgroundColor: '#0c0a06'
       });
 
@@ -54,7 +54,7 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
       setIsGenerating(true);
       const blob = await toBlob(certRef.current, {
         cacheBust: true,
-        pixelRatio: 2,
+        pixelRatio: 3,
         backgroundColor: '#0c0a06'
       });
 
