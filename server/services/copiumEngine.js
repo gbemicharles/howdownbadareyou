@@ -4,21 +4,21 @@
  * Strictly calculates ATH recovery ONLY for tokens actually held in the user's wallet!
  */
 
-// Historical All-Time High (ATH) prices for major TON tokens
+// Exact historical All-Time High (ATH) prices in USD for major TON blockchain tokens & Jettons
 const ATH_PRICE_MAP = {
-  "NOT": 0.029,
-  "DOGS": 0.00163,
-  "HMSTR": 0.0102,
-  "CATI": 1.15,
-  "STON": 9.80,
-  "SCALE": 4.50,
-  "GRAM": 8.25,
-  "TON": 8.25,
-  "MAJOR": 1.95,
-  "MY": 1.45,
-  "REDO": 1.85,
-  "UTYA": 0.12,
-  "GROYP": 0.25
+  "NOT": 0.02896,      // Notcoin ATH: ~$0.02896 (June 2, 2024)
+  "DOGS": 0.001633,    // DOGS ATH: ~$0.001633 (August 26, 2024)
+  "HMSTR": 0.01004,    // Hamster Kombat ATH: ~$0.01004 (Sept 26, 2024)
+  "CATI": 1.18,        // Catizen ATH: ~$1.18 (Sept 20, 2024)
+  "STON": 9.80,        // STON.fi ATH: ~$9.80 (June 2024)
+  "SCALE": 4.50,       // DeDust SCALE ATH: ~$4.50
+  "GRAM": 0.0441,      // Gram Jetton ATH: ~$0.0441 (April 2024)
+  "TON": 8.24,         // Toncoin ATH: ~$8.24 (June 15, 2024)
+  "MAJOR": 1.95,       // Major ATH: ~$1.95 (Nov 2024)
+  "MY": 1.45,          // MyTonWallet ATH: ~$1.45
+  "REDO": 1.85,        // Resistance Dog ATH: ~$1.85 (April 2024)
+  "UTYA": 0.12,        // UTYA ATH: ~$0.12
+  "GROYP": 0.25        // GROYP ATH: ~$0.25
 };
 
 /**
@@ -41,15 +41,15 @@ export function calculateCopiumMetrics(positions = [], currentTotalUsd = 0) {
     } else if (ATH_PRICE_MAP[symUpper]) {
       athPrice = Math.max(ATH_PRICE_MAP[symUpper], pos.currentPriceUsd || 0);
     } else if (pos.currentPriceUsd > 0) {
-      // Default held memecoin ATH multiplier (5x historical peak assumption)
-      athPrice = pos.currentPriceUsd * 5.0;
+      // Realistic memecoin ATH multiplier (3x to 5x peak assumption for unmapped jettons)
+      athPrice = pos.currentPriceUsd * 3.0;
     } else {
       athPrice = pos.currentPriceUsd || 0;
     }
 
     const currentVal = pos.currentValueUsd || (pos.quantity * (pos.currentPriceUsd || 0));
     const athVal = pos.quantity * athPrice;
-    const multiplier = currentVal > 0 ? (athVal / currentVal) : (athPrice > (pos.currentPriceUsd || 0) ? 5.0 : 1.0);
+    const multiplier = currentVal > 0 ? (athVal / currentVal) : (athPrice > (pos.currentPriceUsd || 0) ? 3.0 : 1.0);
 
     totalAthUsd += athVal;
 
@@ -57,6 +57,7 @@ export function calculateCopiumMetrics(positions = [], currentTotalUsd = 0) {
       symbol: pos.symbol,
       name: pos.name,
       quantity: pos.quantity,
+      currentPriceUsd: pos.currentPriceUsd || 0,
       currentValueUsd: currentVal,
       athPriceUsd: athPrice,
       athValueUsd: athVal,
@@ -65,14 +66,14 @@ export function calculateCopiumMetrics(positions = [], currentTotalUsd = 0) {
   });
 
   if (totalAthUsd < currentTotalUsd) {
-    totalAthUsd = currentTotalUsd * 1.5;
+    totalAthUsd = currentTotalUsd * 1.2;
   }
 
   return {
     currentTotalUsd,
     totalAthUsd,
     athGainUsd: Math.max(0, totalAthUsd - currentTotalUsd),
-    athMultiplier: currentTotalUsd > 0 ? parseFloat((totalAthUsd / currentTotalUsd).toFixed(1)) : 2.5,
+    athMultiplier: currentTotalUsd > 0 ? parseFloat((totalAthUsd / currentTotalUsd).toFixed(1)) : 2.0,
     positions: positionsWithAth
   };
 }
