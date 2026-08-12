@@ -65,6 +65,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
       estimatedPnlPercent: analysis.estimatedPnlPercent,
       downBadScore: scoreData.downBadScore,
       isProfitable: scoreData.isProfitable,
+      levelText: scoreData.levelText,
       personality: scoreData.personality
     };
   };
@@ -288,7 +289,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
               {/* SIDE-BY-SIDE CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 
-                {/* WALLET A CARD */}
+                {/* WALLET A CARD (PLAYER 1) */}
                 <div className={`p-5 rounded-2xl border space-y-3 relative overflow-hidden ${
                   duelResult.winner === 'A' 
                     ? 'bg-gradient-to-b from-pink-950/50 via-slate-950 to-slate-950 border-pink-500/60 shadow-lg shadow-pink-500/20' 
@@ -303,39 +304,39 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
                   <div className="space-y-1">
                     <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">PLAYER 1</span>
-                    <div className="font-mono text-xs font-bold text-white truncate">{duelResult.winnerData.walletAddress}</div>
+                    <div className="font-mono text-xs font-bold text-white truncate">{duelResult.walletAData.walletAddress}</div>
                   </div>
 
                   <div className="text-center py-2">
                     <div className={`text-3xl font-black font-mono ${
-                      duelResult.winnerData.isProfitable ? 'text-emerald-400' : 'text-pink-500'
+                      duelResult.walletAData.isProfitable ? 'text-emerald-400' : 'text-pink-500'
                     }`}>
-                      {duelResult.winnerData.isProfitable 
-                        ? `+${Math.round(duelResult.winnerData.estimatedPnlPercent || 0)}% UP BAD` 
-                        : (duelResult.winnerData.downBadScore === 0 ? '0% DOWN BAD' : `${duelResult.winnerData.downBadScore}% DOWN BAD`)}
+                      {duelResult.walletAData.isProfitable 
+                        ? `+${Math.round(duelResult.walletAData.estimatedPnlPercent || 0)}% UP BAD` 
+                        : (duelResult.walletAData.downBadScore === 0 ? '0% DOWN BAD' : `${duelResult.walletAData.downBadScore}% DOWN BAD`)}
                     </div>
                     <div className="text-xs font-bold text-purple-300 mt-1">
-                      {duelResult.winnerData.personality?.title}
+                      {duelResult.walletAData.personality?.title || duelResult.walletAData.levelText}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-center text-xs font-mono border-t border-slate-800/80 pt-3">
                     <div>
                       <span className="text-[9px] text-slate-400 block uppercase">Holdings</span>
-                      <span className="font-bold text-white">{formatUsd(duelResult.winnerData.totalCurrentValueUsd)}</span>
+                      <span className="font-bold text-white">{formatUsd(duelResult.walletAData.totalCurrentValueUsd)}</span>
                     </div>
                     <div>
                       <span className="text-[9px] text-slate-400 block uppercase">Est. P&L</span>
-                      <span className={`font-bold ${duelResult.winnerData.estimatedPnlUsd >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {formatUsd(duelResult.winnerData.estimatedPnlUsd)}
+                      <span className={`font-bold ${duelResult.walletAData.estimatedPnlUsd >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {formatUsd(duelResult.walletAData.estimatedPnlUsd)}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* WALLET B CARD */}
+                {/* WALLET B CARD (PLAYER 2) */}
                 <div className={`p-5 rounded-2xl border space-y-3 relative overflow-hidden ${
-                  duelResult.loser === 'B' 
+                  duelResult.winner === 'B' 
                     ? 'bg-gradient-to-b from-pink-950/50 via-slate-950 to-slate-950 border-pink-500/60 shadow-lg shadow-pink-500/20' 
                     : 'bg-slate-900/60 border-slate-800'
                 }`}>
@@ -348,31 +349,31 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
                   <div className="space-y-1">
                     <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">PLAYER 2</span>
-                    <div className="font-mono text-xs font-bold text-white truncate">{duelResult.loserData.walletAddress}</div>
+                    <div className="font-mono text-xs font-bold text-white truncate">{duelResult.walletBData.walletAddress}</div>
                   </div>
 
                   <div className="text-center py-2">
                     <div className={`text-3xl font-black font-mono ${
-                      duelResult.loserData.isProfitable ? 'text-emerald-400' : 'text-pink-500'
+                      duelResult.walletBData.isProfitable ? 'text-emerald-400' : 'text-pink-500'
                     }`}>
-                      {duelResult.loserData.isProfitable 
-                        ? `+${Math.round(duelResult.loserData.estimatedPnlPercent || 0)}% UP BAD` 
-                        : (duelResult.loserData.downBadScore === 0 ? '0% DOWN BAD' : `${duelResult.loserData.downBadScore}% DOWN BAD`)}
+                      {duelResult.walletBData.isProfitable 
+                        ? `+${Math.round(duelResult.walletBData.estimatedPnlPercent || 0)}% UP BAD` 
+                        : (duelResult.walletBData.downBadScore === 0 ? '0% DOWN BAD' : `${duelResult.walletBData.downBadScore}% DOWN BAD`)}
                     </div>
                     <div className="text-xs font-bold text-purple-300 mt-1">
-                      {duelResult.loserData.personality?.title}
+                      {duelResult.walletBData.personality?.title || duelResult.walletBData.levelText}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-center text-xs font-mono border-t border-slate-800/80 pt-3">
                     <div>
                       <span className="text-[9px] text-slate-400 block uppercase">Holdings</span>
-                      <span className="font-bold text-white">{formatUsd(duelResult.loserData.totalCurrentValueUsd)}</span>
+                      <span className="font-bold text-white">{formatUsd(duelResult.walletBData.totalCurrentValueUsd)}</span>
                     </div>
                     <div>
                       <span className="text-[9px] text-slate-400 block uppercase">Est. P&L</span>
-                      <span className={`font-bold ${duelResult.loserData.estimatedPnlUsd >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {formatUsd(duelResult.loserData.estimatedPnlUsd)}
+                      <span className={`font-bold ${duelResult.walletBData.estimatedPnlUsd >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {formatUsd(duelResult.walletBData.estimatedPnlUsd)}
                       </span>
                     </div>
                   </div>

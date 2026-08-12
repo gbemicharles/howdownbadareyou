@@ -23,8 +23,16 @@ export function compareWalletsForDuel(walletAData, walletBData) {
     winner = 'B';
     loser = 'A';
   } else {
-    // Tie breaker: Worse P&L USD wins
-    if (pnlA <= pnlB) {
+    // Tie breaker when Down Bad scores are equal:
+    // If one is in loss (pnl < 0) and the other in profit (pnl >= 0), the loss wallet wins
+    if (pnlA < 0 && pnlB >= 0) {
+      winner = 'A';
+      loser = 'B';
+    } else if (pnlB < 0 && pnlA >= 0) {
+      winner = 'B';
+      loser = 'A';
+    } else if (pnlA <= pnlB) {
+      // Lower P&L USD wins (worse loss)
       winner = 'A';
       loser = 'B';
     } else {
@@ -67,6 +75,8 @@ export function compareWalletsForDuel(walletAData, walletBData) {
     winner,
     loser,
     scoreDiff,
+    walletAData,
+    walletBData,
     winnerData,
     loserData,
     battleCommentary,
