@@ -136,9 +136,9 @@ export default function ResultCardModal({ roastData, onClose }) {
   const formatUsd = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num || 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-lg overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-3 bg-black/85 backdrop-blur-lg overflow-y-auto">
       
-      <div className="max-w-3xl w-full bg-slate-950/95 border border-pink-500/30 rounded-3xl p-5 sm:p-7 space-y-5 relative shadow-2xl my-8">
+      <div className="max-w-3xl w-full bg-slate-950/95 border border-pink-500/30 rounded-3xl p-4 sm:p-6 space-y-4 relative shadow-2xl my-4">
         
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -198,7 +198,7 @@ export default function ResultCardModal({ roastData, onClose }) {
         <div className="overflow-hidden rounded-3xl border-2 border-slate-800/90 shadow-2xl relative">
           <div 
             ref={cardRef} 
-            className={`w-full ${activeThemeObj.class} p-6 sm:p-8 space-y-6 relative overflow-hidden text-slate-100 font-sans min-h-[380px] flex flex-col justify-between transition-all duration-500`}
+            className={`w-full ${activeThemeObj.class} p-4 sm:p-6 space-y-4 relative overflow-hidden text-slate-100 font-sans min-h-[300px] flex flex-col justify-between transition-all duration-500`}
           >
             {/* Faint Glowing Chart Trend Line in Background */}
             <div className="absolute inset-0 pointer-events-none opacity-20">
@@ -239,7 +239,7 @@ export default function ResultCardModal({ roastData, onClose }) {
                 
                 {/* MASSIVE SCORE HERO TEXT */}
                 <div>
-                  <h1 className={`text-4xl sm:text-6xl font-black tracking-tight leading-none ${
+                  <h1 className={`text-3xl sm:text-5xl font-black tracking-tight leading-none ${
                     isProfitable 
                       ? 'text-emerald-400 drop-shadow-[0_0_20px_rgba(52,211,153,0.4)]' 
                       : 'text-pink-500 drop-shadow-[0_0_20px_rgba(236,72,153,0.4)]'
@@ -302,8 +302,8 @@ export default function ResultCardModal({ roastData, onClose }) {
               </div>
 
               {/* RIGHT COLUMN: 100% TRANSPARENT PEDRO RACCOON NATIVE CHARACTER ART */}
-              <div className="col-span-5 flex justify-end items-center relative min-h-[230px]">
-                <div className="w-full max-w-[220px] h-[230px] sm:h-[250px] relative flex items-center justify-center">
+              <div className="col-span-5 flex justify-end items-center relative min-h-[170px]">
+                <div className="w-full max-w-[180px] h-[170px] sm:h-[190px] relative flex items-center justify-center">
                   {/* Glowing Ambient Aura Behind Pedro */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-2xl pointer-events-none" />
                   
