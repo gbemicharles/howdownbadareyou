@@ -8,8 +8,7 @@ import {
 import CopiumCalculator from './CopiumCalculator';
 import FinancialAstrology from './FinancialAstrology';
 import TelegramStickerGenerator from './TelegramStickerGenerator';
-import { PEDRO_DATA_URIS } from '../assets/pedroDataURIs.js';
-import { PEDRO_ASSETS } from '../assets/pedroAssets.js';
+import PedroCharacter from './PedroCharacter';
 
 const getPedroKeyForPersonality = (title, isProfitable, score) => {
   if (isProfitable) return 'rockstar';
@@ -99,7 +98,6 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
     : (walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : "TON Wallet");
 
   const pedroKey = getPedroKeyForPersonality(personality?.title, isProfitable, downBadScore);
-  const pedroImg = PEDRO_DATA_URIS[pedroKey] || PEDRO_ASSETS[pedroKey] || PEDRO_DATA_URIS.rockstar;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-fade-in pb-12 px-3 sm:px-4">
@@ -178,11 +176,7 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
           <div className="col-span-1 md:col-span-4 flex justify-center items-center">
             <div className="w-36 h-36 sm:w-44 sm:h-44 relative flex items-center justify-center filter drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
               <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-2xl pointer-events-none" />
-              <img 
-                src={pedroImg} 
-                alt="Pedro Raccoon Character" 
-                className="w-full h-full object-contain pointer-events-none drop-shadow-[0_5px_15px_rgba(0,0,0,0.9)]" 
-              />
+              <PedroCharacter pedroKey={pedroKey} alt="Pedro Raccoon Character" />
             </div>
           </div>
 

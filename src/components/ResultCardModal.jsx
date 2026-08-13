@@ -2,8 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
 import { inlineContainerImages } from '../utils/imagePreloader.js';
-import { PEDRO_DATA_URIS } from '../assets/pedroDataURIs.js';
-import { PEDRO_ASSETS } from '../assets/pedroAssets.js';
+import PedroCharacter from './PedroCharacter';
 import { triggerHaptic } from '../utils/haptics.js';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
@@ -69,7 +68,6 @@ export default function ResultCardModal({ roastData, onClose }) {
 
   const activeThemeObj = PRESET_BACKGROUNDS[themeIndex] || PRESET_BACKGROUNDS[0];
   const currentPedroKey = PEDRO_KEYS[pedroKeyIndex] || 'rockstar';
-  const currentPedroImg = PEDRO_DATA_URIS[currentPedroKey] || PEDRO_ASSETS[currentPedroKey] || PEDRO_DATA_URIS.rockstar;
 
   const handleDownloadCard = async () => {
     if (!cardRef.current || isGenerating) return;
@@ -310,18 +308,14 @@ export default function ResultCardModal({ roastData, onClose }) {
 
               </div>
 
-              {/* RIGHT COLUMN: 100% INLINE BASE64 PEDRO RACCOON NATIVE CHARACTER ART */}
+              {/* RIGHT COLUMN: 100% FAIL-PROOF PEDRO RACCOON NATIVE CHARACTER ART */}
               <div className="col-span-5 flex justify-end items-center relative min-h-[160px] sm:min-h-[200px]">
                 <div className={`w-full max-w-[180px] sm:max-w-[200px] h-[160px] sm:h-[220px] relative flex items-center justify-center filter drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)] transition-all duration-500 ${
                   isShuffling ? 'scale-90 opacity-40 rotate-6' : 'scale-100 opacity-100 rotate-0'
                 }`}>
                   <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-2xl pointer-events-none" />
                   
-                  <img 
-                    src={currentPedroImg} 
-                    alt="Pedro Raccoon Character" 
-                    className="w-full h-full object-contain pointer-events-none"
-                  />
+                  <PedroCharacter pedroKey={currentPedroKey} alt="Pedro Raccoon Character" />
                 </div>
               </div>
 

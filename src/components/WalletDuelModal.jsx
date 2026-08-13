@@ -2,8 +2,7 @@ import React, { useState, useRef } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
 import { inlineContainerImages } from '../utils/imagePreloader.js';
-import { PEDRO_DATA_URIS } from '../assets/pedroDataURIs.js';
-import { PEDRO_ASSETS } from '../assets/pedroAssets.js';
+import PedroCharacter from './PedroCharacter';
 import { triggerHaptic } from '../utils/haptics.js';
 import { X, Swords, Trophy, Skull, Share2, Loader2, Sparkles, Crown, Download, Copy, Check, Shuffle, ArrowLeft } from 'lucide-react';
 import { compareWalletsForDuel } from '../../server/services/duelEngine';
@@ -44,7 +43,6 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
   };
 
   const currentPedroKey = PEDRO_KEYS[pedroKeyIndex] || 'rockstar';
-  const currentPedroImg = PEDRO_DATA_URIS[currentPedroKey] || PEDRO_ASSETS[currentPedroKey] || PEDRO_DATA_URIS.rockstar;
 
   const fetchWalletRoastData = async (addr) => {
     try {
@@ -432,11 +430,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
                     <div className={`w-16 h-16 sm:w-24 sm:h-24 relative flex items-center justify-center filter drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] transition-all duration-300 ${
                       isShuffling ? 'scale-90 opacity-40 rotate-6' : 'scale-100 opacity-100 rotate-0'
                     }`}>
-                      <img 
-                        src={currentPedroImg} 
-                        alt="Pedro Raccoon Battle Referee" 
-                        className="w-full h-full object-contain pointer-events-none"
-                      />
+                      <PedroCharacter pedroKey={currentPedroKey} alt="Pedro Raccoon Battle Referee" />
                     </div>
                   </div>
 
