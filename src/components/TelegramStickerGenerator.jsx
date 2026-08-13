@@ -1,10 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
-import { inlineContainerImages } from '../utils/imagePreloader.js';
 import { PEDRO_DATA_URIS } from '../assets/pedroDataURIs.js';
 import { triggerHaptic } from '../utils/haptics.js';
-import { Download, Check, Loader2, Copy, Smile, Shuffle, ExternalLink } from 'lucide-react';
+import { Download, Check, Loader2, Smile, Shuffle, ExternalLink } from 'lucide-react';
 
 const PEDRO_KEYS = ['rockstar', 'rekt', 'copium', 'wizard', 'clown', 'diamond', 'rocket'];
 
@@ -64,24 +63,39 @@ export default function TelegramStickerGenerator({ roastData }) {
   const mascot = PEDRO_CHARACTER_ARTS[activeKey] || PEDRO_CHARACTER_ARTS.rockstar;
   const pedroImgDataUri = PEDRO_DATA_URIS[activeKey] || PEDRO_DATA_URIS.rockstar;
 
+  const generateStickerBlob = async () => {
+    if (!stickerRef.current) return null;
+    
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
+
+    // Small delay ensures Base64 image is fully rendered in browser layout
+    await new Promise(r => setTimeout(r, 100));
+
+    return await toBlob(stickerRef.current, {
+      pixelRatio: 2,
+      width: 512,
+      height: 512,
+      backgroundColor: '#090a0f',
+      filter: (node) => {
+        // Exclude outer layout artifacts if any
+        return true;
+      }
+    });
+  };
+
   const handleSaveAndOpenStickersBot = async () => {
     if (!stickerRef.current || isGenerating) return;
     triggerHaptic('impact', 'medium');
     try {
       setIsGenerating(true);
-
-      await inlineContainerImages(stickerRef.current);
-
-      const blob = await toBlob(stickerRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        width: 512,
-        height: 512,
-        backgroundColor: '#090a0f'
-      });
-      await saveImageBlob(blob, `downbad-sticker-${walletAddress.slice(0, 6)}.png`);
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 3000);
+      const blob = await generateStickerBlob();
+      if (blob) {
+        await saveImageBlob(blob, `downbad-sticker-${walletAddress.slice(0, 6)}.png`);
+        setDownloadSuccess(true);
+        setTimeout(() => setDownloadSuccess(false), 3000);
+      }
     } catch (err) {
       console.error('Failed to save sticker:', err);
     } finally {
@@ -102,20 +116,12 @@ export default function TelegramStickerGenerator({ roastData }) {
 
     try {
       setIsGenerating(true);
-
-      await inlineContainerImages(stickerRef.current);
-
-      const blob = await toBlob(stickerRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        width: 512,
-        height: 512,
-        backgroundColor: '#090a0f'
-      });
-
-      await saveImageBlob(blob, `downbad-sticker-${walletAddress.slice(0, 6)}.png`);
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 3000);
+      const blob = await generateStickerBlob();
+      if (blob) {
+        await saveImageBlob(blob, `downbad-sticker-${walletAddress.slice(0, 6)}.png`);
+        setDownloadSuccess(true);
+        setTimeout(() => setDownloadSuccess(false), 3000);
+      }
     } catch (err) {
       console.error('Failed to generate sticker:', err);
     } finally {
