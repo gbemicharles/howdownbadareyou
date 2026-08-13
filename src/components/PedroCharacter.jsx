@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PEDRO_DATA_URIS } from '../assets/pedroDataURIs.js';
 import { PEDRO_ASSETS } from '../assets/pedroAssets.js';
 
@@ -10,6 +10,11 @@ export default function PedroCharacter({ pedroKey = 'rockstar', className = '', 
 
   const [currentSrc, setCurrentSrc] = useState(primarySrc);
   const [hasFailedOnce, setHasFailedOnce] = useState(false);
+
+  useEffect(() => {
+    setCurrentSrc(primarySrc);
+    setHasFailedOnce(false);
+  }, [validKey, primarySrc]);
 
   const handleError = () => {
     if (!hasFailedOnce && currentSrc !== secondarySrc) {

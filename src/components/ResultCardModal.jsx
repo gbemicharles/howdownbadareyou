@@ -3,6 +3,7 @@ import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
 import { inlineContainerImages } from '../utils/imagePreloader.js';
 import PedroCharacter from './PedroCharacter';
+import { PEDRO_KEYS, getPedroKeyForPersonality } from '../utils/pedroHelper.js';
 import { triggerHaptic } from '../utils/haptics.js';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
@@ -19,18 +20,8 @@ const PRESET_BACKGROUNDS = [
   { id: 'synthwave', name: 'Synthwave Sunset', class: 'bg-gradient-to-r from-purple-950 via-slate-950 to-pink-950 border-pink-500/40' }
 ];
 
-const PEDRO_KEYS = ['rockstar', 'rekt', 'copium', 'wizard', 'clown', 'diamond', 'rocket'];
-
 export default function ResultCardModal({ roastData, onClose }) {
   const cardRef = useRef(null);
-
-  const [themeIndex, setThemeIndex] = useState(0);
-  const [pedroKeyIndex, setPedroKeyIndex] = useState(0);
-  const [hideHoldings, setHideHoldings] = useState(false);
-  const [isShuffling, setIsShuffling] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [downloadSuccess, setDownloadSuccess] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
 
   const {
     walletAddress,
@@ -49,9 +40,21 @@ export default function ResultCardModal({ roastData, onClose }) {
     roasts
   } = roastData;
 
+  const [themeIndex, setThemeIndex] = useState(0);
+  const [pedroKeyIndex, setPedroKeyIndex] = useState(0);
+  const [hideHoldings, setHideHoldings] = useState(false);
+  const [isShuffling, setIsShuffling] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
   useEffect(() => {
-    handleRandomize();
-  }, []);
+    const defaultKey = getPedroKeyForPersonality(personality?.title, isProfitable, downBadScore);
+    const defaultIndex = PEDRO_KEYS.indexOf(defaultKey);
+    if (defaultIndex !== -1) {
+      setPedroKeyIndex(defaultIndex);
+    }
+  }, [personality, isProfitable, downBadScore]);
 
   const handleRandomize = () => {
     triggerHaptic('selection');

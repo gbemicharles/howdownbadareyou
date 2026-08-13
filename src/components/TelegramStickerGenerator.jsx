@@ -3,10 +3,9 @@ import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
 import { inlineContainerImages } from '../utils/imagePreloader.js';
 import PedroCharacter from './PedroCharacter';
+import { PEDRO_KEYS, getPedroKeyForPersonality } from '../utils/pedroHelper.js';
 import { triggerHaptic } from '../utils/haptics.js';
 import { Download, Check, Loader2, Smile, Shuffle, ExternalLink } from 'lucide-react';
-
-const PEDRO_KEYS = ['rockstar', 'rekt', 'copium', 'wizard', 'clown', 'diamond', 'rocket'];
 
 const PEDRO_CHARACTER_ARTS = {
   rockstar: {
@@ -41,16 +40,20 @@ const PEDRO_CHARACTER_ARTS = {
 
 export default function TelegramStickerGenerator({ roastData }) {
   const stickerRef = useRef(null);
+  const { walletAddress, downBadScore, isProfitable, personality } = roastData;
+
   const [pedroKeyIndex, setPedroKeyIndex] = useState(0);
   const [isShuffling, setIsShuffling] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
-  const { walletAddress, downBadScore, isProfitable, personality } = roastData;
-
   useEffect(() => {
-    handleRandomizeSticker();
-  }, []);
+    const defaultKey = getPedroKeyForPersonality(personality?.title, isProfitable, downBadScore);
+    const defaultIndex = PEDRO_KEYS.indexOf(defaultKey);
+    if (defaultIndex !== -1) {
+      setPedroKeyIndex(defaultIndex);
+    }
+  }, [personality, isProfitable, downBadScore]);
 
   const handleRandomizeSticker = () => {
     triggerHaptic('selection');
