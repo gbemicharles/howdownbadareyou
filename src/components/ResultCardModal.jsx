@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { toBlob } from 'html-to-image';
+import { exportElementToBlob } from '../utils/exportHelper.js';
 import { saveImageBlob } from '../utils/mobileDownload.js';
-import { inlineContainerImages } from '../utils/imagePreloader.js';
 import PedroCharacter from './PedroCharacter';
 import { PEDRO_KEYS, getPedroKeyForPersonality } from '../utils/pedroHelper.js';
 import { triggerHaptic } from '../utils/haptics.js';
@@ -78,17 +77,12 @@ export default function ResultCardModal({ roastData, onClose }) {
 
     try {
       setIsGenerating(true);
-      await inlineContainerImages(cardRef.current);
-
-      const blob = await toBlob(cardRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: '#090a0f'
-      });
-
-      await saveImageBlob(blob, `downbad-card-${walletAddress.slice(0, 6)}.png`);
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 3000);
+      const blob = await exportElementToBlob(cardRef.current, { backgroundColor: '#090a0f' });
+      if (blob) {
+        await saveImageBlob(blob, `downbad-card-${walletAddress.slice(0, 6)}.png`);
+        setDownloadSuccess(true);
+        setTimeout(() => setDownloadSuccess(false), 3000);
+      }
     } catch (err) {
       console.error('Failed to generate image:', err);
     } finally {
@@ -102,13 +96,7 @@ export default function ResultCardModal({ roastData, onClose }) {
 
     try {
       setIsGenerating(true);
-      await inlineContainerImages(cardRef.current);
-
-      const blob = await toBlob(cardRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: '#090a0f'
-      });
+      const blob = await exportElementToBlob(cardRef.current, { backgroundColor: '#090a0f' });
 
       if (blob && navigator.clipboard && window.ClipboardItem) {
         await navigator.clipboard.write([
@@ -116,8 +104,8 @@ export default function ResultCardModal({ roastData, onClose }) {
         ]);
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 3000);
-      } else {
-        handleDownloadCard();
+      } else if (blob) {
+        await saveImageBlob(blob, `downbad-card-${walletAddress.slice(0, 6)}.png`);
       }
     } catch (err) {
       console.error('Failed to copy image to clipboard:', err);
@@ -132,9 +120,10 @@ export default function ResultCardModal({ roastData, onClose }) {
     triggerHaptic('impact', 'light');
     try {
       setIsGenerating(true);
-      await inlineContainerImages(cardRef.current);
-      const blob = await toBlob(cardRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: '#090a0f' });
-      await saveImageBlob(blob, `downbad-card-${walletAddress.slice(0, 6)}.png`);
+      const blob = await exportElementToBlob(cardRef.current, { backgroundColor: '#090a0f' });
+      if (blob) {
+        await saveImageBlob(blob, `downbad-card-${walletAddress.slice(0, 6)}.png`);
+      }
     } catch (e) {} finally {
       setIsGenerating(false);
     }
@@ -313,9 +302,7 @@ export default function ResultCardModal({ roastData, onClose }) {
 
               {/* RIGHT COLUMN: 100% FAIL-PROOF PEDRO RACCOON NATIVE CHARACTER ART */}
               <div className="col-span-5 flex justify-end items-center relative min-h-[160px] sm:min-h-[200px]">
-                <div className={`w-full max-w-[180px] sm:max-w-[200px] h-[160px] sm:h-[220px] relative flex items-center justify-center transition-all duration-500 ${
-                  isShuffling ? 'scale-90 opacity-40 rotate-6' : 'scale-100 opacity-100 rotate-0'
-                }`}>
+                <div className="w-full max-w-[180px] sm:max-w-[200px] h-[160px] sm:h-[220px] relative flex items-center justify-center">
                   <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-2xl pointer-events-none" />
                   
                   <PedroCharacter pedroKey={currentPedroKey} alt="Pedro Raccoon Character" />

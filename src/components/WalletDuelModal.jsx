@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { toBlob } from 'html-to-image';
+import { exportElementToBlob } from '../utils/exportHelper.js';
 import { saveImageBlob } from '../utils/mobileDownload.js';
-import { inlineContainerImages } from '../utils/imagePreloader.js';
 import PedroCharacter from './PedroCharacter';
 import { triggerHaptic } from '../utils/haptics.js';
 import { X, Swords, Trophy, Skull, Share2, Loader2, Sparkles, Crown, Download, Copy, Check, Shuffle, ArrowLeft } from 'lucide-react';
@@ -99,17 +98,12 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
     try {
       setIsGeneratingImg(true);
-      await inlineContainerImages(duelCardRef.current);
-
-      const blob = await toBlob(duelCardRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: '#090a0f'
-      });
-
-      await saveImageBlob(blob, `wallet-duel-${Date.now()}.png`);
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 3000);
+      const blob = await exportElementToBlob(duelCardRef.current, { backgroundColor: '#090a0f' });
+      if (blob) {
+        await saveImageBlob(blob, `wallet-duel-${Date.now()}.png`);
+        setDownloadSuccess(true);
+        setTimeout(() => setDownloadSuccess(false), 3000);
+      }
     } catch (err) {
       console.error('Failed to generate duel card image:', err);
     } finally {
@@ -123,13 +117,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
     try {
       setIsGeneratingImg(true);
-      await inlineContainerImages(duelCardRef.current);
-
-      const blob = await toBlob(duelCardRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: '#090a0f'
-      });
+      const blob = await exportElementToBlob(duelCardRef.current, { backgroundColor: '#090a0f' });
 
       if (blob && navigator.clipboard && window.ClipboardItem) {
         await navigator.clipboard.write([
@@ -137,8 +125,8 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
         ]);
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 3000);
-      } else {
-        handleDownloadDuelCard();
+      } else if (blob) {
+        await saveImageBlob(blob, `wallet-duel-${Date.now()}.png`);
       }
     } catch (err) {
       console.error('Failed to copy duel card image:', err);

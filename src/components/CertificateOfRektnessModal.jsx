@@ -1,69 +1,69 @@
 import React, { useRef, useState } from 'react';
-import { toBlob } from 'html-to-image';
+import { exportElementToBlob } from '../utils/exportHelper.js';
 import { saveImageBlob } from '../utils/mobileDownload.js';
-import { inlineContainerImages } from '../utils/imagePreloader.js';
+import PedroCharacter from './PedroCharacter';
 import { triggerHaptic } from '../utils/haptics.js';
 import { QRCodeSVG } from 'qrcode.react';
-import { X, Download, Share2, Award, Sparkles, Check, Loader2, ShieldCheck, Copy, ArrowLeft } from 'lucide-react';
+import { X, Download, Copy, Share2, Check, Loader2, Award, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export default function CertificateOfRektnessModal({ roastData, onClose }) {
   const certRef = useRef(null);
+
+  const {
+    walletAddress,
+    totalCurrentValueUsd,
+    estimatedCostBasisUsd,
+    estimatedPnlUsd,
+    estimatedPnlPercent,
+    downBadScore,
+    isProfitable,
+    levelText,
+    personality,
+    biggestBag,
+    biggestLoser,
+    roasts
+  } = roastData;
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
-  const { walletAddress, downBadScore, isProfitable, personality, estimatedPnlUsd } = roastData;
+  const currentDate = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 
-  let rankTitle = "CERTIFIED EXIT LIQUIDITY PROVIDER";
-  if (isProfitable || downBadScore === 0) {
-    rankTitle = "ORDER OF THE BREAKEVEN CHAMPION";
-  } else if (downBadScore >= 80) {
-    rankTitle = "GRANDMASTER EXIT LIQUIDITY PROVIDER";
-  } else if (downBadScore >= 50) {
-    rankTitle = "SENIOR BAG COLLECTOR & COPIUM INHALER";
-  } else {
-    rankTitle = "HONORARY DIAMOND HANDS SURVIVOR";
-  }
+  const displayAddr = (walletAddress && walletAddress.toLowerCase().endsWith('.ton'))
+    ? walletAddress
+    : (walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : "TON Wallet");
 
-  const formatUsd = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num || 0);
-
-  const handleDownloadCert = async () => {
+  const handleDownloadDiploma = async () => {
     if (!certRef.current || isGenerating) return;
     triggerHaptic('impact', 'medium');
 
     try {
       setIsGenerating(true);
-      await inlineContainerImages(certRef.current);
-
-      const blob = await toBlob(certRef.current, {
-        cacheBust: true,
-        pixelRatio: 3,
-        backgroundColor: '#0c0a06'
-      });
-
-      await saveImageBlob(blob, `certificate-rektness-${walletAddress.slice(0, 6)}.png`);
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 3000);
+      const blob = await exportElementToBlob(certRef.current, { backgroundColor: '#06070a' });
+      if (blob) {
+        await saveImageBlob(blob, `certificate-rektness-${walletAddress.slice(0, 6)}.png`);
+        setDownloadSuccess(true);
+        setTimeout(() => setDownloadSuccess(false), 3000);
+      }
     } catch (err) {
-      console.error('Failed to generate certificate:', err);
+      console.error('Failed to generate diploma:', err);
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleCopyCert = async () => {
+  const handleCopyDiploma = async () => {
     if (!certRef.current || isGenerating) return;
     triggerHaptic('impact', 'medium');
 
     try {
       setIsGenerating(true);
-      await inlineContainerImages(certRef.current);
-
-      const blob = await toBlob(certRef.current, {
-        cacheBust: true,
-        pixelRatio: 3,
-        backgroundColor: '#0c0a06'
-      });
+      const blob = await exportElementToBlob(certRef.current, { backgroundColor: '#06070a' });
 
       if (blob && navigator.clipboard && window.ClipboardItem) {
         await navigator.clipboard.write([
@@ -71,32 +71,33 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
         ]);
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 3000);
-      } else {
-        handleDownloadCert();
+      } else if (blob) {
+        await saveImageBlob(blob, `certificate-rektness-${walletAddress.slice(0, 6)}.png`);
       }
     } catch (err) {
-      console.error('Failed to copy certificate:', err);
-      handleDownloadCert();
+      console.error('Failed to copy diploma image:', err);
+      handleDownloadDiploma();
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleShareCertOnX = async () => {
+  const handlePostToX = () => {
     triggerHaptic('impact', 'light');
-    await handleCopyCert();
-    const tweetText = encodeURIComponent(`📜 OFFICIAL CERTIFICATE OF REKTNESS 📜\n\nThis certifies that TON Wallet ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)} has officially achieved ${downBadScore}% Down Bad score!\n\nRank: ${rankTitle}\nGet your certificate on Telegram at https://t.me/howdownbadareyoubot 💀 #TON #Web3`);
+    const tweetText = encodeURIComponent(`📜 Official Certificate of Web3 Financial Rektness!\n\nI have officially graduated from the TON Trenches with ${isProfitable ? 'PROFIT SURVIVOR' : `${downBadScore}% DOWN BAD`} status!\n\nGet your diploma at https://t.me/howdownbadareyoubot #TON #Web3`);
     const intentUrl = `https://x.com/intent/tweet?text=${tweetText}`;
     window.open(intentUrl, '_blank', 'noopener,noreferrer');
   };
 
+  const formatUsd = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num || 0);
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-start pt-16 sm:pt-10 pb-16 px-3 sm:px-4 bg-black/90 backdrop-blur-lg overflow-y-auto min-h-screen">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-start pt-20 sm:pt-14 pb-24 px-3 sm:px-4 bg-black/90 backdrop-blur-lg overflow-y-auto min-h-screen">
       
-      <div className="max-w-3xl w-full bg-slate-950/95 border border-amber-500/30 rounded-3xl p-4 sm:p-7 space-y-4 relative shadow-2xl mt-4 sm:mt-6 mb-16 pb-20 sm:pb-7">
+      <div className="max-w-3xl w-full bg-slate-950/95 border border-amber-500/30 rounded-3xl p-4 sm:p-7 space-y-4 relative shadow-2xl mt-8 sm:mt-10 mb-24 pb-20 sm:pb-7">
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3 pt-1">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3 pt-2">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-purple-600 to-pink-600 p-0.5 shadow-lg shadow-amber-500/30 shrink-0">
               <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
@@ -105,10 +106,10 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
             </div>
             <div>
               <h3 className="text-base sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
-                OFFICIAL CERTIFICATE OF REKTNESS 📜
+                CERTIFICATE OF REKTNESS 📜
               </h3>
               <p className="text-[11px] sm:text-xs font-bold text-slate-400">
-                16:9 Landscape Cyber Parchment Diploma!
+                Official Web3 Honorary Diploma of Financial Experience
               </p>
             </div>
           </div>
@@ -118,102 +119,133 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
               triggerHaptic('selection');
               onClose();
             }}
-            className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-extrabold text-xs flex items-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95 shrink-0"
+            className="px-4 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-extrabold text-xs flex items-center gap-2 cursor-pointer shadow-lg shadow-pink-600/30 transition-all active:scale-95 shrink-0"
           >
-            <ArrowLeft className="w-4 h-4 text-amber-400" />
+            <ArrowLeft className="w-4 h-4 text-white" />
             <span>CLOSE ✕</span>
           </button>
         </div>
 
-        {/* ---------------- 16:9 LANDSCAPE CERTIFICATE PARCHMENT CANVAS ---------------- */}
-        <div className="overflow-hidden rounded-3xl border-2 border-amber-500/40 shadow-[0_0_40px_rgba(245,158,11,0.15)] relative">
+        {/* ---------------- DIPLOMA CANVAS CONTAINER ---------------- */}
+        <div className="overflow-hidden rounded-3xl border-2 border-amber-500/40 shadow-2xl relative">
           <div 
             ref={certRef}
-            className="w-full bg-[#0c0a04] p-5 sm:p-7 space-y-4 relative text-amber-100 font-serif overflow-hidden border-8 border-[#171408] min-h-[360px] flex flex-col justify-between"
-            style={{
-              backgroundImage: 'radial-gradient(at 50% 10%, rgba(245,158,11,0.15) 0px, transparent 60%), radial-gradient(at 50% 90%, rgba(139,92,246,0.15) 0px, transparent 60%)'
-            }}
+            className="w-full bg-[#06070a] p-6 sm:p-10 space-y-6 relative overflow-hidden text-amber-100 font-serif min-h-[480px] flex flex-col justify-between border-8 border-[#121620]"
           >
-            <div className="absolute top-2 left-2 w-8 h-8 border-t-2 border-l-2 border-amber-500/60 pointer-events-none" />
-            <div className="absolute top-2 right-2 w-8 h-8 border-t-2 border-r-2 border-amber-500/60 pointer-events-none" />
-            <div className="absolute bottom-2 left-2 w-8 h-8 border-b-2 border-l-2 border-amber-500/60 pointer-events-none" />
-            <div className="absolute bottom-2 right-2 w-8 h-8 border-b-2 border-r-2 border-amber-500/60 pointer-events-none" />
+            {/* Elegant Ornamental Borders */}
+            <div className="absolute inset-2 border border-amber-500/30 pointer-events-none rounded-xl" />
+            <div className="absolute inset-4 border border-amber-500/20 pointer-events-none rounded-lg" />
 
-            <div className="text-center space-y-1 font-sans">
-              <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-400">
-                TON BLOCKCHAIN ON-CHAIN DIPLOMA
+            {/* Top Header & Crest */}
+            <div className="text-center space-y-2 relative z-10 font-sans">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 to-pink-500 p-0.5 shadow-lg shadow-amber-500/30 mx-auto">
+                <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center">
+                  <Award className="w-6 h-6 text-amber-400" />
+                </div>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white uppercase border-b border-amber-500/30 pb-2">
-                CERTIFICATE OF REKTNESS 📜
+              <h2 className="text-xs font-mono font-black text-amber-400 tracking-[0.3em] uppercase">
+                TON BLOCKCHAIN ACADEMY OF DEGEN TRENCHES
+              </h2>
+              <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight font-serif uppercase">
+                CERTIFICATE OF REKTNESS
               </h1>
-            </div>
-
-            <div className="text-center space-y-2 font-sans my-auto">
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">THIS OFFICIAL CERTIFICATE IS PROUDLY PRESENTED TO:</p>
-              
-              <div className="font-mono text-xs sm:text-sm font-extrabold text-amber-300 bg-amber-500/10 py-1 px-4 rounded-xl border border-amber-500/30 inline-block truncate max-w-full">
-                {walletAddress}
-              </div>
-
-              <div>
-                <span className="text-[9px] font-black uppercase tracking-widest text-purple-300 block">AWARDED DEGREE RANK:</span>
-                <h2 className="text-base sm:text-lg font-black bg-gradient-to-r from-amber-300 via-pink-400 to-purple-300 bg-clip-text text-transparent tracking-wide">
-                  {rankTitle}
-                </h2>
-              </div>
-            </div>
-
-            <div className="bg-amber-500/5 border border-amber-500/20 p-3 rounded-xl text-center font-sans">
-              <p className="text-[11px] font-bold text-slate-300 italic leading-snug">
-                "Having demonstrated legendary conviction by holding positions through -90% drops and selflessly providing exit liquidity to devs in need, this wallet is hereby granted everlasting Web3 distinction."
+              <p className="text-[11px] font-mono text-slate-400 uppercase tracking-widest">
+                THIS HONORARY DIPLOMA IS OFFICIALLY CONFERRED UPON
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 items-center border-t border-amber-500/30 pt-3 text-center font-sans text-xs">
-              
-              <div className="space-y-0.5 text-left">
-                <span className="text-sm font-serif italic text-amber-200 block font-bold">Pavel Durov</span>
-                <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider block">Founder, Telegram / TON</span>
-                <span className="text-[8px] font-extrabold text-amber-400/90 uppercase block font-mono">MADE BY GBEMICHARLES</span>
+            {/* Recipient Address & Score Box */}
+            <div className="text-center space-y-3 relative z-10 my-auto bg-slate-950/80 p-4 sm:p-6 rounded-2xl border border-amber-500/30">
+              <div className="text-sm sm:text-xl font-mono font-extrabold text-cyan-300 tracking-wider">
+                {displayAddr}
               </div>
 
-              <div className="flex justify-center">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-600 via-yellow-400 to-amber-500 p-0.5 shadow-lg shadow-amber-500/30 flex items-center justify-center">
-                  <div className="w-full h-full rounded-full bg-[#0c0a04] border border-amber-400 flex flex-col items-center justify-center">
-                    <ShieldCheck className="w-4 h-4 text-amber-400" />
-                    <span className="text-[6px] font-black text-amber-300 tracking-widest uppercase">VERIFIED</span>
+              <div className="space-y-1">
+                <div className={`text-2xl sm:text-4xl font-black font-sans tracking-tight ${
+                  isProfitable ? 'text-emerald-400' : 'text-pink-500'
+                }`}>
+                  {isProfitable ? levelText : `${downBadScore}% DOWN BAD`}
+                </div>
+                <div className="text-xs sm:text-sm font-black font-sans text-amber-300 uppercase tracking-wider">
+                  HONORARY TITLE: {personality.title}
+                </div>
+              </div>
+
+              <p className="text-xs font-sans italic text-slate-300 max-w-lg mx-auto leading-relaxed">
+                "Having survived market volatility, uncurated memecoins, and emotional damage in the TON Trenches with unwavering conviction and zero risk management."
+              </p>
+            </div>
+
+            {/* Bottom Signatures & Stamp */}
+            <div className="grid grid-cols-12 gap-4 items-end relative z-10 font-sans pt-2 border-t border-amber-500/20">
+              
+              <div className="col-span-5 space-y-1 text-left">
+                <div className="text-[10px] font-mono font-black text-amber-400 uppercase">
+                  DATE CONFERRED: {currentDate}
+                </div>
+                <div className="text-[9px] font-mono text-slate-400 block">
+                  VERIFIED TON BLOCKCHAIN DIAGNOSIS
+                </div>
+              </div>
+
+              {/* Center Seal */}
+              <div className="col-span-2 flex justify-center">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 to-pink-500 p-0.5 shadow-xl flex items-center justify-center">
+                  <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center p-1">
+                    <QRCodeSVG value="https://t.me/howdownbadareyoubot" size={36} bgColor="#090a0f" fgColor="#f59e0b" />
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col items-end gap-0.5">
-                <div className="p-1 bg-[#0c0a04] border border-amber-500/40 rounded-xl shadow-md">
-                  <QRCodeSVG 
-                    value="https://t.me/howdownbadareyoubot" 
-                    size={42} 
-                    bgColor="#0c0a04" 
-                    fgColor="#fbbf24" 
-                    level="L" 
-                  />
+              <div className="col-span-5 text-right space-y-1">
+                <div className="text-[10px] font-mono font-black text-pink-400 uppercase">
+                  OFFICIAL CHIEF ROASTER
                 </div>
-                <span className="text-[7px] font-black text-amber-400 tracking-widest uppercase font-mono">
-                  T.ME/HOWDOWNBADAREYOUBOT
-                </span>
+                <div className="text-[9px] font-mono text-slate-400 block">
+                  GBEMICHARLES (@GBEMICHARLES)
+                </div>
               </div>
 
             </div>
 
           </div>
         </div>
-        {/* ---------------- END 16:9 LANDSCAPE CANVAS ---------------- */}
+        {/* ---------------- END DIPLOMA CANVAS ---------------- */}
 
-        {/* Modal Buttons */}
+        {/* Modal Action Buttons */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
           
           <button
-            onClick={handleDownloadCert}
+            onClick={handlePostToX}
             disabled={isGenerating}
-            className="px-4 py-3 rounded-2xl bg-gradient-to-r from-amber-600 to-purple-600 hover:from-amber-500 hover:to-purple-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-600/30 transition-all cursor-pointer disabled:opacity-50"
+            className="px-4 py-3 rounded-2xl bg-black hover:bg-slate-900 border border-slate-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
+          >
+            <Share2 className="w-4 h-4 text-amber-400" />
+            <span>SHARE DIPLOMA ON X 🐦</span>
+          </button>
+
+          <button
+            onClick={handleCopyDiploma}
+            disabled={isGenerating}
+            className="px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+          >
+            {copySuccess ? (
+              <>
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span>COPIED DIPLOMA!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4 text-cyan-400" />
+                <span>COPY DIPLOMA IMAGE 📋</span>
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={handleDownloadDiploma}
+            disabled={isGenerating}
+            className="px-4 py-3 rounded-2xl bg-gradient-to-r from-amber-600 via-purple-600 to-pink-600 hover:from-amber-500 hover:to-pink-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-600/30 transition-all cursor-pointer disabled:opacity-50"
           >
             {isGenerating ? (
               <>
@@ -223,7 +255,7 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
             ) : downloadSuccess ? (
               <>
                 <Check className="w-4 h-4 text-emerald-400" />
-                <span>DIPLOMA SAVED!</span>
+                <span>SAVED DIPLOMA!</span>
               </>
             ) : (
               <>
@@ -231,32 +263,6 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
                 <span>DOWNLOAD DIPLOMA 📜</span>
               </>
             )}
-          </button>
-
-          <button
-            onClick={handleCopyCert}
-            disabled={isGenerating}
-            className="px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-          >
-            {copySuccess ? (
-              <>
-                <Check className="w-4 h-4 text-emerald-400" />
-                <span>COPIED TO CLIPBOARD!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4 text-cyan-400" />
-                <span>COPY DIPLOMA 📋</span>
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={handleShareCertOnX}
-            className="px-4 py-3 rounded-2xl bg-black hover:bg-slate-900 border border-slate-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
-          >
-            <Share2 className="w-4 h-4 text-pink-400" />
-            <span>POST DIPLOMA ON X 🐦</span>
           </button>
 
         </div>

@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { toBlob } from 'html-to-image';
+import { exportElementToBlob } from '../utils/exportHelper.js';
 import { saveImageBlob } from '../utils/mobileDownload.js';
-import { inlineContainerImages } from '../utils/imagePreloader.js';
 import PedroCharacter from './PedroCharacter';
 import { PEDRO_KEYS, getPedroKeyForPersonality } from '../utils/pedroHelper.js';
 import { triggerHaptic } from '../utils/haptics.js';
@@ -72,16 +71,7 @@ export default function TelegramStickerGenerator({ roastData }) {
 
   const generateStickerBlob = async () => {
     if (!stickerRef.current) return null;
-    
-    if (document.fonts && document.fonts.ready) {
-      await document.fonts.ready;
-    }
-
-    await inlineContainerImages(stickerRef.current);
-    await new Promise(r => setTimeout(r, 100));
-
-    return await toBlob(stickerRef.current, {
-      pixelRatio: 2,
+    return await exportElementToBlob(stickerRef.current, {
       width: 512,
       height: 512,
       backgroundColor: '#090a0f'
