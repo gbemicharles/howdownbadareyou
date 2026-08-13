@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
 import { inlineContainerImages } from '../utils/imagePreloader.js';
+import { PEDRO_ASSETS } from '../assets/pedroAssets.js';
 import { PEDRO_DATA_URIS } from '../assets/pedroDataURIs.js';
 import { triggerHaptic } from '../utils/haptics.js';
 import { X, Swords, Trophy, Skull, Share2, Loader2, Sparkles, Crown, Download, Copy, Check, Shuffle, ArrowLeft } from 'lucide-react';
@@ -43,7 +44,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
   };
 
   const currentPedroKey = PEDRO_KEYS[pedroKeyIndex] || 'rockstar';
-  const currentPedroImg = PEDRO_DATA_URIS[currentPedroKey] || PEDRO_DATA_URIS.rockstar;
+  const currentPedroImg = PEDRO_ASSETS[currentPedroKey] || PEDRO_DATA_URIS[currentPedroKey] || PEDRO_ASSETS.rockstar;
 
   const fetchWalletRoastData = async (addr) => {
     try {

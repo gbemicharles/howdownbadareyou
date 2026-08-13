@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
 import { inlineContainerImages } from '../utils/imagePreloader.js';
+import { PEDRO_ASSETS } from '../assets/pedroAssets.js';
 import { PEDRO_DATA_URIS } from '../assets/pedroDataURIs.js';
 import { triggerHaptic } from '../utils/haptics.js';
 import { QRCodeSVG } from 'qrcode.react';
@@ -68,7 +69,7 @@ export default function ResultCardModal({ roastData, onClose }) {
 
   const activeThemeObj = PRESET_BACKGROUNDS[themeIndex] || PRESET_BACKGROUNDS[0];
   const currentPedroKey = PEDRO_KEYS[pedroKeyIndex] || 'rockstar';
-  const currentPedroImg = PEDRO_DATA_URIS[currentPedroKey] || PEDRO_DATA_URIS.rockstar;
+  const currentPedroImg = PEDRO_ASSETS[currentPedroKey] || PEDRO_DATA_URIS[currentPedroKey] || PEDRO_ASSETS.rockstar;
 
   const handleDownloadCard = async () => {
     if (!cardRef.current || isGenerating) return;

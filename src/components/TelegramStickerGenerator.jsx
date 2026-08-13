@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
+import { inlineContainerImages } from '../utils/imagePreloader.js';
+import { PEDRO_ASSETS } from '../assets/pedroAssets.js';
 import { PEDRO_DATA_URIS } from '../assets/pedroDataURIs.js';
 import { triggerHaptic } from '../utils/haptics.js';
 import { Download, Check, Loader2, Smile, Shuffle, ExternalLink } from 'lucide-react';
@@ -61,7 +63,7 @@ export default function TelegramStickerGenerator({ roastData }) {
 
   const activeKey = PEDRO_KEYS[pedroKeyIndex] || 'rockstar';
   const mascot = PEDRO_CHARACTER_ARTS[activeKey] || PEDRO_CHARACTER_ARTS.rockstar;
-  const pedroImgDataUri = PEDRO_DATA_URIS[activeKey] || PEDRO_DATA_URIS.rockstar;
+  const pedroImgUri = PEDRO_ASSETS[activeKey] || PEDRO_DATA_URIS[activeKey] || PEDRO_ASSETS.rockstar;
 
   const displayAddr = (walletAddress && walletAddress.toLowerCase().endsWith('.ton'))
     ? walletAddress
@@ -74,6 +76,7 @@ export default function TelegramStickerGenerator({ roastData }) {
       await document.fonts.ready;
     }
 
+    await inlineContainerImages(stickerRef.current);
     await new Promise(r => setTimeout(r, 100));
 
     return await toBlob(stickerRef.current, {
@@ -204,7 +207,7 @@ export default function TelegramStickerGenerator({ roastData }) {
                 <div className="col-span-5 flex justify-end items-center relative">
                   <div className="w-36 h-36 relative flex items-center justify-center filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)]">
                     <img 
-                      src={pedroImgDataUri} 
+                      src={pedroImgUri} 
                       alt={mascot.title}
                       className="w-full h-full object-contain pointer-events-none"
                     />
