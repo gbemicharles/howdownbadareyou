@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
 import { inlineContainerImages } from '../utils/imagePreloader.js';
-import { getPedroImageSrc, preloadPedroImages } from '../utils/pedroPreloader.js';
+import { PEDRO_DATA_URIS } from '../assets/pedroDataURIs.js';
 import { triggerHaptic } from '../utils/haptics.js';
 import { Download, Check, Loader2, Copy, Smile, Shuffle, ExternalLink } from 'lucide-react';
 
@@ -45,12 +45,10 @@ export default function TelegramStickerGenerator({ roastData }) {
   const [isShuffling, setIsShuffling] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
 
-  const { walletAddress, downBadScore, isProfitable, estimatedPnlPercent, personality, roasts } = roastData;
+  const { walletAddress, downBadScore, isProfitable, personality } = roastData;
 
   useEffect(() => {
-    preloadPedroImages();
     handleRandomizeSticker();
   }, []);
 
@@ -64,7 +62,7 @@ export default function TelegramStickerGenerator({ roastData }) {
 
   const activeKey = PEDRO_KEYS[pedroKeyIndex] || 'rockstar';
   const mascot = PEDRO_CHARACTER_ARTS[activeKey] || PEDRO_CHARACTER_ARTS.rockstar;
-  const pedroImgSrc = getPedroImageSrc(activeKey);
+  const pedroImgDataUri = PEDRO_DATA_URIS[activeKey] || PEDRO_DATA_URIS.rockstar;
 
   const handleSaveAndOpenStickersBot = async () => {
     if (!stickerRef.current || isGenerating) return;
@@ -76,7 +74,7 @@ export default function TelegramStickerGenerator({ roastData }) {
 
       const blob = await toBlob(stickerRef.current, {
         cacheBust: true,
-        pixelRatio: 3,
+        pixelRatio: 2,
         width: 512,
         height: 512,
         backgroundColor: '#090a0f'
@@ -109,7 +107,7 @@ export default function TelegramStickerGenerator({ roastData }) {
 
       const blob = await toBlob(stickerRef.current, {
         cacheBust: true,
-        pixelRatio: 3,
+        pixelRatio: 2,
         width: 512,
         height: 512,
         backgroundColor: '#090a0f'
@@ -156,62 +154,66 @@ export default function TelegramStickerGenerator({ roastData }) {
         </button>
       </div>
 
-      {/* 512x512 STICKER CANVAS */}
+      {/* 512x512 STICKER CANVAS PREVIEW WITH SCALED OUTER WRAPPER */}
       <div className="flex justify-center">
-        <div className="overflow-hidden rounded-3xl border-2 border-pink-500/40 shadow-2xl max-w-[340px] w-full">
+        <div className="overflow-hidden rounded-3xl border-2 border-pink-500/40 shadow-2xl w-[340px] h-[340px] relative">
           
-          <div 
-            ref={stickerRef}
-            className="w-[512px] h-[512px] bg-[#090a0f] p-8 space-y-6 relative overflow-hidden text-white font-sans flex flex-col justify-between origin-top-left scale-[0.664] -mr-[172px] -mb-[172px]"
-          >
-            {/* Ambient Background Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-b from-pink-950/40 via-purple-950/20 to-slate-950 pointer-events-none" />
+          <div className="origin-top-left scale-[0.664] w-[512px] h-[512px]">
+            
+            {/* PRISTINE UNSCALED 512x512 DOM ELEMENT CAPTURED BY html-to-image */}
+            <div 
+              ref={stickerRef}
+              className="w-[512px] h-[512px] bg-[#090a0f] p-8 space-y-6 relative overflow-hidden text-white font-sans flex flex-col justify-between"
+            >
+              {/* Ambient Background Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-b from-pink-950/40 via-purple-950/20 to-slate-950 pointer-events-none" />
 
-            {/* Sticker Top Header */}
-            <div className="flex items-center justify-between border-b border-pink-500/30 pb-3 relative z-10">
-              <span className="text-xs font-black uppercase tracking-widest text-pink-400">
-                HOW DOWN BAD ARE YOU?
-              </span>
-              <span className="text-[11px] font-mono font-extrabold text-cyan-300">
-                {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-              </span>
-            </div>
-
-            {/* Main Center Score & Pedro Character Artwork */}
-            <div className="grid grid-cols-12 gap-4 items-center relative z-10 my-auto">
-              
-              <div className="col-span-7 space-y-2">
-                <h1 className={`text-5xl font-black tracking-tight ${
-                  isProfitable ? 'text-emerald-400' : 'text-pink-500'
-                }`}>
-                  {isProfitable ? 'SURVIVOR 🏆' : `${downBadScore}% DOWN BAD`}
-                </h1>
-                <div className="text-xs font-black text-purple-300 uppercase tracking-wider">
-                  {personality.title}
-                </div>
-                <p className="text-xs font-bold text-slate-300 italic">
-                  "{mascot.quote}"
-                </p>
+              {/* Sticker Top Header */}
+              <div className="flex items-center justify-between border-b border-pink-500/30 pb-3 relative z-10">
+                <span className="text-xs font-black uppercase tracking-widest text-pink-400">
+                  HOW DOWN BAD ARE YOU?
+                </span>
+                <span className="text-[11px] font-mono font-extrabold text-cyan-300">
+                  {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                </span>
               </div>
 
-              {/* Transparent Pedro Raccoon Character */}
-              <div className="col-span-5 flex justify-end items-center relative">
-                <div className="w-36 h-36 relative flex items-center justify-center">
-                  <img 
-                    src={pedroImgSrc} 
-                    alt={mascot.title}
-                    crossOrigin="anonymous"
-                    className="w-full h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] scale-125"
-                  />
+              {/* Main Center Score & Pedro Character Artwork */}
+              <div className="grid grid-cols-12 gap-4 items-center relative z-10 my-auto">
+                
+                <div className="col-span-7 space-y-2">
+                  <h1 className={`text-5xl font-black tracking-tight ${
+                    isProfitable ? 'text-emerald-400' : 'text-pink-500'
+                  }`}>
+                    {isProfitable ? 'SURVIVOR 🏆' : `${downBadScore}% DOWN BAD`}
+                  </h1>
+                  <div className="text-xs font-black text-purple-300 uppercase tracking-wider">
+                    {personality.title}
+                  </div>
+                  <p className="text-xs font-bold text-slate-300 italic">
+                    "{mascot.quote}"
+                  </p>
                 </div>
+
+                {/* 100% Inline Base64 Pedro Raccoon Character */}
+                <div className="col-span-5 flex justify-end items-center relative">
+                  <div className="w-36 h-36 relative flex items-center justify-center">
+                    <img 
+                      src={pedroImgDataUri} 
+                      alt={mascot.title}
+                      className="w-full h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] scale-125"
+                    />
+                  </div>
+                </div>
+
               </div>
 
-            </div>
+              {/* Sticker Bottom Watermark */}
+              <div className="flex items-end justify-between border-t border-pink-500/30 pt-3 relative z-10 font-mono text-xs">
+                <span className="font-extrabold text-cyan-300">T.ME/HOWDOWNBADAREYOUBOT</span>
+                <span className="font-extrabold text-pink-400 uppercase">MADE BY GBEMICHARLES</span>
+              </div>
 
-            {/* Sticker Bottom Watermark */}
-            <div className="flex items-end justify-between border-t border-pink-500/30 pt-3 relative z-10 font-mono text-xs">
-              <span className="font-extrabold text-cyan-300">T.ME/HOWDOWNBADAREYOUBOT</span>
-              <span className="font-extrabold text-pink-400 uppercase">MADE BY GBEMICHARLES</span>
             </div>
 
           </div>

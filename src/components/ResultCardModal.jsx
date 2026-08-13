@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
 import { inlineContainerImages } from '../utils/imagePreloader.js';
-import { getPedroImageSrc, preloadPedroImages } from '../utils/pedroPreloader.js';
+import { PEDRO_DATA_URIS } from '../assets/pedroDataURIs.js';
 import { triggerHaptic } from '../utils/haptics.js';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
@@ -50,7 +50,6 @@ export default function ResultCardModal({ roastData, onClose }) {
   } = roastData;
 
   useEffect(() => {
-    preloadPedroImages();
     handleRandomize();
   }, []);
 
@@ -69,7 +68,7 @@ export default function ResultCardModal({ roastData, onClose }) {
 
   const activeThemeObj = PRESET_BACKGROUNDS[themeIndex] || PRESET_BACKGROUNDS[0];
   const currentPedroKey = PEDRO_KEYS[pedroKeyIndex] || 'rockstar';
-  const currentPedroImg = getPedroImageSrc(currentPedroKey);
+  const currentPedroImg = PEDRO_DATA_URIS[currentPedroKey] || PEDRO_DATA_URIS.rockstar;
 
   const handleDownloadCard = async () => {
     if (!cardRef.current || isGenerating) return;
@@ -81,7 +80,7 @@ export default function ResultCardModal({ roastData, onClose }) {
 
       const blob = await toBlob(cardRef.current, {
         cacheBust: true,
-        pixelRatio: 3,
+        pixelRatio: 2,
         backgroundColor: '#090a0f'
       });
 
@@ -105,7 +104,7 @@ export default function ResultCardModal({ roastData, onClose }) {
 
       const blob = await toBlob(cardRef.current, {
         cacheBust: true,
-        pixelRatio: 3,
+        pixelRatio: 2,
         backgroundColor: '#090a0f'
       });
 
@@ -132,7 +131,7 @@ export default function ResultCardModal({ roastData, onClose }) {
     try {
       setIsGenerating(true);
       await inlineContainerImages(cardRef.current);
-      const blob = await toBlob(cardRef.current, { cacheBust: true, pixelRatio: 3, backgroundColor: '#090a0f' });
+      const blob = await toBlob(cardRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: '#090a0f' });
       await saveImageBlob(blob, `downbad-card-${walletAddress.slice(0, 6)}.png`);
     } catch (e) {} finally {
       setIsGenerating(false);
@@ -145,12 +144,12 @@ export default function ResultCardModal({ roastData, onClose }) {
   const formatUsd = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num || 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-start pt-16 sm:pt-10 pb-16 px-3 sm:px-4 bg-black/90 backdrop-blur-lg overflow-y-auto min-h-screen">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-start pt-20 sm:pt-14 pb-24 px-3 sm:px-4 bg-black/90 backdrop-blur-lg overflow-y-auto min-h-screen">
       
-      <div className="max-w-3xl w-full bg-slate-950/95 border border-pink-500/30 rounded-3xl p-4 sm:p-7 space-y-4 relative shadow-2xl mt-4 sm:mt-6 mb-16 pb-20 sm:pb-7">
+      <div className="max-w-3xl w-full bg-slate-950/95 border border-pink-500/30 rounded-3xl p-4 sm:p-7 space-y-4 relative shadow-2xl mt-8 sm:mt-10 mb-24 pb-20 sm:pb-7">
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3 pt-1">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3 pt-2">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-600 via-purple-600 to-cyan-400 p-0.5 shadow-lg shadow-pink-600/30 shrink-0">
               <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
@@ -172,9 +171,9 @@ export default function ResultCardModal({ roastData, onClose }) {
               triggerHaptic('selection');
               onClose();
             }}
-            className="px-3.5 py-2 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/40 text-pink-300 font-extrabold text-xs flex items-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95 shrink-0"
+            className="px-4 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-extrabold text-xs flex items-center gap-2 cursor-pointer shadow-lg shadow-pink-600/30 transition-all active:scale-95 shrink-0"
           >
-            <ArrowLeft className="w-4 h-4 text-pink-400" />
+            <ArrowLeft className="w-4 h-4 text-white" />
             <span>CLOSE ✕</span>
           </button>
         </div>
@@ -310,7 +309,7 @@ export default function ResultCardModal({ roastData, onClose }) {
 
               </div>
 
-              {/* RIGHT COLUMN: 100% TRANSPARENT PEDRO RACCOON NATIVE CHARACTER ART */}
+              {/* RIGHT COLUMN: 100% INLINE BASE64 PEDRO RACCOON NATIVE CHARACTER ART */}
               <div className="col-span-5 flex justify-end items-center relative min-h-[200px]">
                 <div className="w-full max-w-[200px] h-[200px] sm:h-[240px] relative flex items-center justify-center">
                   <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-2xl pointer-events-none" />
@@ -318,7 +317,6 @@ export default function ResultCardModal({ roastData, onClose }) {
                   <img 
                     src={currentPedroImg} 
                     alt="Pedro Raccoon Character" 
-                    crossOrigin="anonymous"
                     className={`w-full h-full object-contain drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)] scale-125 transition-all duration-500 ${
                       isShuffling ? 'scale-90 opacity-40 rotate-6' : 'scale-125 opacity-100 rotate-0'
                     }`}
