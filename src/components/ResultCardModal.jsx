@@ -313,7 +313,7 @@ export default function ResultCardModal({ roastData, onClose }) {
 
               {/* RIGHT COLUMN: 100% FAIL-PROOF PEDRO RACCOON NATIVE CHARACTER ART */}
               <div className="col-span-5 flex justify-end items-center relative min-h-[160px] sm:min-h-[200px]">
-                <div className={`w-full max-w-[180px] sm:max-w-[200px] h-[160px] sm:h-[220px] relative flex items-center justify-center filter drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)] transition-all duration-500 ${
+                <div className={`w-full max-w-[180px] sm:max-w-[200px] h-[160px] sm:h-[220px] relative flex items-center justify-center transition-all duration-500 ${
                   isShuffling ? 'scale-90 opacity-40 rotate-6' : 'scale-100 opacity-100 rotate-0'
                 }`}>
                   <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-2xl pointer-events-none" />

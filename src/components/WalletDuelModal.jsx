@@ -427,7 +427,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
                   {/* 100% Inline Base64 Pedro Raccoon Standing Natively inside Duel Card */}
                   <div className="col-span-4 sm:col-span-3 flex justify-end items-center relative">
-                    <div className={`w-16 h-16 sm:w-24 sm:h-24 relative flex items-center justify-center filter drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] transition-all duration-300 ${
+                    <div className={`w-16 h-16 sm:w-24 sm:h-24 relative flex items-center justify-center transition-all duration-300 ${
                       isShuffling ? 'scale-90 opacity-40 rotate-6' : 'scale-100 opacity-100 rotate-0'
                     }`}>
                       <PedroCharacter pedroKey={currentPedroKey} alt="Pedro Raccoon Battle Referee" />

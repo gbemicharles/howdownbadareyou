@@ -9,20 +9,7 @@ import CopiumCalculator from './CopiumCalculator';
 import FinancialAstrology from './FinancialAstrology';
 import TelegramStickerGenerator from './TelegramStickerGenerator';
 import PedroCharacter from './PedroCharacter';
-
-const getPedroKeyForPersonality = (title, isProfitable, score) => {
-  if (isProfitable) return 'rockstar';
-  if (!title) return 'rockstar';
-  const t = title.toUpperCase();
-  if (t.includes('ONE-TOKEN') || t.includes('BELIEVER')) return 'rocket';
-  if (t.includes('BAG COLLECTOR')) return 'diamond';
-  if (t.includes('AIRDROP')) return 'clown';
-  if (t.includes('EXIT LIQUIDITY') || score >= 80) return 'rekt';
-  if (t.includes('DIAMOND')) return 'diamond';
-  if (t.includes('ASTROLOGY') || t.includes('WIZARD')) return 'wizard';
-  if (score >= 50) return 'copium';
-  return 'rockstar';
-};
+import { getPedroKeyForPersonality } from '../utils/pedroHelper.js';
 
 export default function ResultDashboard({ roastData, onReset, onOpenShareCard, onOpenCert }) {
   const {
@@ -174,7 +161,7 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
 
           {/* Native Standing Pedro Raccoon Character Artwork */}
           <div className="col-span-1 md:col-span-4 flex justify-center items-center">
-            <div className="w-36 h-36 sm:w-44 sm:h-44 relative flex items-center justify-center filter drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
+            <div className="w-36 h-36 sm:w-44 sm:h-44 relative flex items-center justify-center">
               <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-2xl pointer-events-none" />
               <PedroCharacter pedroKey={pedroKey} alt="Pedro Raccoon Character" />
             </div>
