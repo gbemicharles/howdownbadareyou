@@ -7,37 +7,50 @@
 export function calculatePersonalityAndScores(analysis) {
   const pnlPercent = analysis.estimatedPnlPercent || 0;
   const isProfitable = pnlPercent > 0.05;
-  const isBreakeven = Math.abs(pnlPercent) <= 0.05 || analysis.estimatedPnlUsd === 0;
+  
+  // A wallet is ONLY strictly breakeven if it has zero altcoin losses and holds purely native GRAM or stablecoins with exact $0 PnL!
+  const hasAltcoins = analysis.positions.some(p => {
+    const sym = (p.symbol || '').toUpperCase();
+    return sym !== 'GRAM' && sym !== 'TON' && sym !== 'USDT' && sym !== 'USD₮' && sym !== 'USDC';
+  });
+
+  const isBreakeven = !isProfitable && !hasAltcoins && (Math.abs(pnlPercent) <= 0.05 || analysis.estimatedPnlUsd === 0);
   const lossPercent = Math.min(100, Math.max(0, -pnlPercent));
 
   // 1. Calculate Down Bad Score (0 - 100)
-  // Profitable and breakeven wallets are strictly 0% Down Bad!
   let downBadScore = 0;
-  if (isBreakeven || isProfitable) {
+  if (isProfitable) {
+    downBadScore = 0;
+  } else if (isBreakeven) {
     downBadScore = 0;
   } else {
-    // Loss percentage is primary factor for non-profitable wallets
-    let score = lossPercent;
+    // Loss percentage is primary factor
+    let score = lossPercent > 0 ? lossPercent : 35;
     
     // Add concentration penalty if single bag > 60%
     if (analysis.biggestBag && analysis.biggestBag.concentrationPercent > 60) {
-      score += 5;
+      score += 15;
+    }
+
+    // Add position count / degen penalty
+    if (analysis.totalPositionsCount > 5) {
+      score += 12;
     }
 
     // Add losing ratio penalty
     if (analysis.totalPositionsCount > 0) {
-      const lossRatio = analysis.losingPositionsCount / analysis.totalPositionsCount;
-      score += lossRatio * 8;
+      const lossRatio = (analysis.losingPositionsCount || 1) / analysis.totalPositionsCount;
+      score += lossRatio * 15;
     }
 
-    downBadScore = Math.min(100, Math.max(0, Math.round(score)));
+    downBadScore = Math.min(99, Math.max(15, Math.round(score)));
   }
 
   // 2. Down Bad Level Description
   const levelText = getDownBadLevelText(downBadScore, isProfitable, isBreakeven, pnlPercent);
 
   // 3. Classify Personality
-  const personality = classifyPersonality(analysis, isProfitable, isBreakeven, pnlPercent, lossPercent);
+  const personality = classifyPersonality(analysis, isProfitable, isBreakeven, pnlPercent, lossPercent, downBadScore);
 
   // 4. Generate Entertainment Metrics
   const entertainmentMetrics = generateEntertainmentMetrics(analysis, downBadScore, isProfitable, isBreakeven, lossPercent);
@@ -61,18 +74,17 @@ function getDownBadLevelText(score, isProfitable, isBreakeven, pnlPercent) {
     return `+${Math.round(pnlPercent)}% UP BAD 🚀 (In Profit)`;
   }
 
-  if (score <= 10) return "You're chilling... for now. ☕";
-  if (score <= 25) return "Slightly cooked 🍳";
-  if (score <= 40) return "Getting uncomfortable 😳";
-  if (score <= 55) return "Medium rare cooked 🥩";
-  if (score <= 70) return "Deeply cooked 💀";
-  if (score <= 85) return "Financially adventurous 🧗‍♂️";
+  if (score <= 15) return "You're chilling... for now. ☕";
+  if (score <= 30) return "Slightly cooked 🍳";
+  if (score <= 45) return "Getting uncomfortable 😳";
+  if (score <= 60) return "Medium rare cooked 🥩";
+  if (score <= 75) return "Deeply cooked 💀";
+  if (score <= 88) return "Financially adventurous 🧗‍♂️";
   if (score <= 95) return "Absolutely down bad 😭";
-  if (score <= 99) return "Portfolio Emergency 🚨";
   return "Call somebody 📞💀";
 }
 
-function classifyPersonality(analysis, isProfitable, isBreakeven, pnlPercent, lossPercent) {
+function classifyPersonality(analysis, isProfitable, isBreakeven, pnlPercent, lossPercent, downBadScore) {
   if (isBreakeven) {
     return {
       title: "THE BREAKEVEN SURVIVOR ⚖️",
@@ -91,16 +103,16 @@ function classifyPersonality(analysis, isProfitable, isBreakeven, pnlPercent, lo
   }
 
   // 2. ONE-TOKEN BELIEVER
-  if (analysis.biggestBag && analysis.biggestBag.concentrationPercent >= 70) {
+  if (analysis.biggestBag && (analysis.biggestBag.concentrationPercent >= 60 || analysis.totalPositionsCount <= 2)) {
     return {
       title: "THE ONE-TOKEN BELIEVER 🫡",
       tagline: "Diversification is apparently FUD.",
-      description: `You put ${analysis.biggestBag.concentrationPercent}% of your net worth into $${analysis.biggestBag.symbol} because a guy with an anime avatar on Telegram said 'trust the process'. Mainnet or main street, baby!`
+      description: `You put ${Math.round(analysis.biggestBag.concentrationPercent || 70)}% of your net worth into $${analysis.biggestBag.symbol} because a guy with an anime avatar on Telegram said 'trust the process'. Mainnet or main street, baby!`
     };
   }
 
   // 3. BAG COLLECTOR
-  if (analysis.totalPositionsCount >= 10) {
+  if (analysis.totalPositionsCount >= 8) {
     return {
       title: "THE BAG COLLECTOR 🎒",
       tagline: "You collect dead project tokens like Pokémon.",
@@ -108,17 +120,8 @@ function classifyPersonality(analysis, isProfitable, isBreakeven, pnlPercent, lo
     };
   }
 
-  // 4. AIRDROP FARMER
-  if (analysis.totalPositionsCount >= 6 && analysis.totalCurrentValueUsd < 500 && analysis.ignoredTokensCount >= 3) {
-    return {
-      title: "THE AIRDROP FARMER 🌾",
-      tagline: "340 micro-transactions for a $0.42 claim.",
-      description: "You've spent $35 in TON gas fees to farm an airdrop worth $0.18. Honest work, zero profit, pure dedication to the hustle."
-    };
-  }
-
-  // 5. EXIT LIQUIDITY PROVIDER
-  if (lossPercent >= 60 && analysis.biggestLoser) {
+  // 4. EXIT LIQUIDITY PROVIDER
+  if (downBadScore >= 70 || lossPercent >= 50) {
     return {
       title: "THE EXIT LIQUIDITY PROVIDER 🫡",
       tagline: "Somewhere in Dubai, a whale bought a G-Wagon with your money.",
@@ -126,8 +129,8 @@ function classifyPersonality(analysis, isProfitable, isBreakeven, pnlPercent, lo
     };
   }
 
-  // 6. DIAMOND HAND
-  if (lossPercent >= 40) {
+  // 5. DIAMOND HAND
+  if (downBadScore >= 40) {
     return {
       title: "THE DIAMOND HAND 💎",
       tagline: "You've decided selling is a myth invented by banks.",
@@ -135,7 +138,7 @@ function classifyPersonality(analysis, isProfitable, isBreakeven, pnlPercent, lo
     };
   }
 
-  // 7. SERIAL DEGEN
+  // 6. SERIAL DEGEN
   return {
     title: "THE SERIAL DEGEN 🔥",
     tagline: "High turnover, zero risk management, pure chaos.",

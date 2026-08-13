@@ -4,7 +4,6 @@
  * Ticker Note: Native TON token is represented with symbol 'GRAM' (GRAM / Toncoin).
  */
 
-// Registry of officially verified contracts for major bluechip, stablecoin, & wrapped assets
 const OFFICIAL_BLUECHIP_CONTRACTS = new Set([
   '0:b113a994b5024a16719f69139328eb759596c38a25f59028b146fecdc3621dfe', // Tether USD (USD₮)
   'eqcxe6mutqjkfngfarotkot1lzbdiix1kcixrv7nw2id_sds',
@@ -20,7 +19,6 @@ const OFFICIAL_BLUECHIP_CONTRACTS = new Set([
   'eqb1wggf4t2wsl0sxdxx2hhd0uq087ydblfk652tnp80b2r7'
 ]);
 
-// Sample Demo Wallets for Instant Roasting & Testing
 export const DEMO_WALLETS = {
   rekt_trader: {
     address: "EQBvW8Z5huBkMJYdnfAEMnTW9Xn1_Rrekt_Trader_Demo_01",
@@ -34,11 +32,8 @@ export const DEMO_WALLETS = {
       { symbol: "DOGS", name: "DOGS Community", decimals: 9, quantity: 85000, currentPriceUsd: 0.00065, estAcquisitionCost: 950.0 },
       { symbol: "CATI", name: "Catizen Token", decimals: 9, quantity: 350, currentPriceUsd: 0.42, estAcquisitionCost: 1100.0 },
       { symbol: "SCAM-AIRDROP-1", name: "Claim 10000 GRAM Scam", decimals: 9, quantity: 10000, currentPriceUsd: 0, estAcquisitionCost: 0, isSpam: true },
-      { symbol: "SCAM-AIRDROP-2", name: "Free Voucher NFT Token", decimals: 9, quantity: 1, currentPriceUsd: 0, estAcquisitionCost: 0, isSpam: true },
-      { symbol: "FREE-REWARD-99", name: "Visit ton-reward-fake.org", decimals: 9, quantity: 500, currentPriceUsd: 0, estAcquisitionCost: 0, isSpam: true },
     ]
   },
-
   whale_degen: {
     address: "EQDWhale_Degen_Mega_Wallet_000999888777666555444",
     label: "Whale Degen 🐋",
@@ -48,59 +43,11 @@ export const DEMO_WALLETS = {
       { symbol: "GRAM", name: "GRAM (Toncoin)", decimals: 9, quantity: 1250.0, currentPriceUsd: 6.80, estAcquisitionCost: 6200.0 },
       { symbol: "STON", name: "STON.fi Token", decimals: 9, quantity: 4500, currentPriceUsd: 4.10, estAcquisitionCost: 32000.0 },
       { symbol: "SCALE", name: "DeDust Scale", decimals: 9, quantity: 18000, currentPriceUsd: 0.85, estAcquisitionCost: 45000.0 },
-      { symbol: "REKT", name: "Rekt Coin", decimals: 9, quantity: 9900000, currentPriceUsd: 0.00012, estAcquisitionCost: 15000.0 },
-      { symbol: "SPAM-TOKEN-A", name: "Visit fake-airdrop.com", decimals: 9, quantity: 1, currentPriceUsd: 0, estAcquisitionCost: 0, isSpam: true },
-      { symbol: "SPAM-TOKEN-B", name: "Free GRAM Voucher", decimals: 9, quantity: 500, currentPriceUsd: 0, estAcquisitionCost: 0, isSpam: true }
-    ]
-  },
-
-  diamond_hands: {
-    address: "EQB_Diamond_Hands_Hodler_Never_Selling_112233",
-    label: "Diamond Hands 💎",
-    tonBalance: 310.0,
-    tonPriceUsd: 6.80,
-    tokens: [
-      { symbol: "GRAM", name: "GRAM (Toncoin)", decimals: 9, quantity: 310.0, currentPriceUsd: 6.80, estAcquisitionCost: 1800.0 },
-      { symbol: "MY", name: "MyTonWallet Token", decimals: 9, quantity: 8500, currentPriceUsd: 0.25, estAcquisitionCost: 8900.0 },
-      { symbol: "NOT", name: "Notcoin", decimals: 9, quantity: 140000, currentPriceUsd: 0.0095, estAcquisitionCost: 5400.0 },
-      { symbol: "SPAM-1", name: "Fake Airdrop Token", decimals: 9, quantity: 100, currentPriceUsd: 0, estAcquisitionCost: 0, isSpam: true }
-    ]
-  },
-
-  airdrop_farmer: {
-    address: "EQC_Airdrop_Farmer_100_Small_Positions_998877",
-    label: "Airdrop Farmer 🌾",
-    tonBalance: 12.4,
-    tonPriceUsd: 6.80,
-    tokens: [
-      { symbol: "GRAM", name: "GRAM (Toncoin)", decimals: 9, quantity: 12.4, currentPriceUsd: 6.80, estAcquisitionCost: 75.0 },
-      { symbol: "NOT", name: "Notcoin", decimals: 9, quantity: 4500, currentPriceUsd: 0.0095, estAcquisitionCost: 35.0 },
-      { symbol: "DOGS", name: "DOGS", decimals: 9, quantity: 12000, currentPriceUsd: 0.00065, estAcquisitionCost: 8.0 },
-      { symbol: "HMSTR", name: "Hamster Kombat", decimals: 9, quantity: 15000, currentPriceUsd: 0.0022, estAcquisitionCost: 33.0 },
-      { symbol: "CATI", name: "Catizen", decimals: 9, quantity: 45, currentPriceUsd: 0.42, estAcquisitionCost: 19.0 },
-      { symbol: "MAJOR", name: "Major Token", decimals: 9, quantity: 300, currentPriceUsd: 0.80, estAcquisitionCost: 240.0 },
-      { symbol: "SPAM-JUNK-1", name: "Junk Spam 1", decimals: 9, quantity: 1, currentPriceUsd: 0, estAcquisitionCost: 0, isSpam: true },
-      { symbol: "SPAM-JUNK-2", name: "Junk Spam 2", decimals: 9, quantity: 10, currentPriceUsd: 0, estAcquisitionCost: 0, isSpam: true },
-      { symbol: "SPAM-JUNK-3", name: "Junk Spam 3", decimals: 9, quantity: 50, currentPriceUsd: 0, estAcquisitionCost: 0, isSpam: true },
-    ]
-  },
-
-  survivor_winner: {
-    address: "EQA_Survivor_Lucky_Gainer_Winning_Big_777777",
-    label: "Survivor 🏆",
-    tonBalance: 840.0,
-    tonPriceUsd: 6.80,
-    tokens: [
-      { symbol: "GRAM", name: "GRAM (Toncoin)", decimals: 9, quantity: 840.0, currentPriceUsd: 6.80, estAcquisitionCost: 2400.0 },
-      { symbol: "STON", name: "STON.fi", decimals: 9, quantity: 1200, currentPriceUsd: 4.10, estAcquisitionCost: 1500.0 },
-      { symbol: "NOT", name: "Notcoin", decimals: 9, quantity: 800000, currentPriceUsd: 0.0095, estAcquisitionCost: 2100.0 }
+      { symbol: "REKT", name: "Rekt Coin", decimals: 9, quantity: 9900000, currentPriceUsd: 0.00012, estAcquisitionCost: 15000.0 }
     ]
   }
 };
 
-/**
- * Clean whitespace, quotes, and URI scheme prefixes
- */
 export function sanitizeTonAddress(address) {
   if (!address || typeof address !== 'string') return '';
   let cleaned = address.trim().replace(/^["']|["']$/g, '');
@@ -110,9 +57,6 @@ export function sanitizeTonAddress(address) {
   return cleaned;
 }
 
-/**
- * Converts user-friendly base64url TON address (EQ... / UQ...) into raw format (workchain:hex)
- */
 export function parseTonAddressToRaw(address) {
   const cleaned = sanitizeTonAddress(address);
   if (!cleaned) return null;
@@ -150,9 +94,6 @@ export function parseTonAddressToRaw(address) {
   return null;
 }
 
-/**
- * Validates whether a string resembles a valid TON wallet address
- */
 export function isValidTonAddress(address) {
   if (!address || typeof address !== 'string') return false;
   const cleaned = sanitizeTonAddress(address);
@@ -170,10 +111,6 @@ export function isValidTonAddress(address) {
   return raw !== null;
 }
 
-/**
- * Multi-DEX price map cache (Ston.fi Assets + Ston.fi Pools + DeDust Pools)
- * Indexed STRICTLY by Contract Address to prevent fake symbol price hijacking!
- */
 let dexPriceMapCache = null;
 let dexPriceMapCacheTime = 0;
 
@@ -184,7 +121,6 @@ async function getDexPriceMap(tonPriceUsd = 1.35) {
 
   const priceMap = new Map();
 
-  // 1. Ston.fi Assets (Strict contract address mapping)
   try {
     const res = await fetch('https://api.ston.fi/v1/assets');
     if (res.ok) {
@@ -205,11 +141,8 @@ async function getDexPriceMap(tonPriceUsd = 1.35) {
         }
       }
     }
-  } catch (e) {
-    console.warn('[TON Provider] Ston.fi assets price fetch warning:', e.message);
-  }
+  } catch (e) {}
 
-  // 2. Ston.fi Pools (LP Jettons)
   try {
     const poolRes = await fetch('https://api.ston.fi/v1/pools');
     if (poolRes.ok) {
@@ -224,11 +157,8 @@ async function getDexPriceMap(tonPriceUsd = 1.35) {
         }
       }
     }
-  } catch (e) {
-    console.warn('[TON Provider] Ston.fi pools price fetch warning:', e.message);
-  }
+  } catch (e) {}
 
-  // 3. DeDust Pools (Strict contract address mapping with minimum 2 TON reserve liquidity)
   try {
     const dedustRes = await fetch('https://api.dedust.io/v2/pools');
     if (dedustRes.ok) {
@@ -274,22 +204,16 @@ async function getDexPriceMap(tonPriceUsd = 1.35) {
         }
       }
     }
-  } catch (e) {
-    console.warn('[TON Provider] DeDust pools price fetch warning:', e.message);
-  }
+  } catch (e) {}
 
   dexPriceMapCache = priceMap;
   dexPriceMapCacheTime = Date.now();
   return priceMap;
 }
 
-/**
- * Fetch raw live blockchain data for a TON wallet address or TON DNS domain
- */
 export async function getWalletRawData(address) {
   const cleaned = sanitizeTonAddress(address);
 
-  // Check demo wallet match first
   for (const demoKey of Object.keys(DEMO_WALLETS)) {
     const demo = DEMO_WALLETS[demoKey];
     if (demo.address.toLowerCase() === cleaned.toLowerCase()) {
@@ -305,7 +229,7 @@ export async function getWalletRawData(address) {
 
   let rawAddr = parseTonAddressToRaw(cleaned) || cleaned;
 
-  // AUTOMATIC TON DNS RESOLUTION FOR .ton DOMAINS (e.g. gusgus.ton, damx.ton, gbemicharles.ton)
+  // AUTOMATIC TON DNS RESOLUTION FOR .ton DOMAINS (e.g. gusgus.ton, damx.ton)
   if (cleaned.toLowerCase().endsWith('.ton')) {
     try {
       const dnsRes = await fetch(`https://tonapi.io/v2/accounts/${encodeURIComponent(cleaned)}`);
@@ -315,12 +239,9 @@ export async function getWalletRawData(address) {
           rawAddr = dnsData.address;
         }
       }
-    } catch (e) {
-      console.warn('[TON Provider] DNS resolution failed for:', cleaned, e);
-    }
+    } catch (e) {}
   }
 
-  // Query live TON API, Staking Pools, Toncenter v3, and DEX price feeds concurrently using resolved rawAddr
   const [accRes, jetRes, rateRes, evRes, stakRes, toncenterRes] = await Promise.all([
     fetch(`https://tonapi.io/v2/accounts/${encodeURIComponent(rawAddr)}`).catch(() => null),
     fetch(`https://tonapi.io/v2/accounts/${encodeURIComponent(rawAddr)}/jettons?currencies=usd`).catch(() => null),
@@ -351,7 +272,6 @@ export async function getWalletRawData(address) {
     } catch (e) {}
   }
 
-  // Check Staking Nominator Pools (Tonkeeper Earn, Tonstakers, Bemo, TF Pools)
   let stakedTonBalance = 0;
   if (stakRes && stakRes.ok) {
     try {
@@ -363,7 +283,6 @@ export async function getWalletRawData(address) {
     } catch (e) {}
   }
 
-  // Deep transaction & event analysis for DEX swaps
   const swapCosts = new Map();
 
   if (evRes && evRes.ok) {
@@ -392,11 +311,8 @@ export async function getWalletRawData(address) {
   }
 
   const tokenMap = new Map();
-
-  // Total TON = Native liquid balance + Staked Pool balance
   const totalTonBalance = tonBalance + stakedTonBalance;
 
-  // Add native GRAM (Toncoin) balance if > 0
   if (totalTonBalance > 0) {
     const gramSwapCost = swapCosts.get("GRAM") || 0;
     const gramCostBasis = gramSwapCost > 0 ? gramSwapCost : (totalTonBalance * tonPriceUsd);
@@ -412,7 +328,6 @@ export async function getWalletRawData(address) {
     });
   }
 
-  // Parse Jetton balances from TonAPI
   if (jetRes && jetRes.ok) {
     try {
       const jetData = await jetRes.json();
@@ -435,7 +350,6 @@ export async function getWalletRawData(address) {
         const contractAddr = (meta.address || b.jetton?.address || "").toLowerCase();
         const rawContract = parseTonAddressToRaw(contractAddr) || contractAddr;
 
-        // Standardize TON symbol to GRAM
         if (symbol === "TON") {
           symbol = "GRAM";
           name = "GRAM (Toncoin)";
@@ -444,7 +358,6 @@ export async function getWalletRawData(address) {
         const isVerifiedBluechip = OFFICIAL_BLUECHIP_CONTRACTS.has(contractAddr) || OFFICIAL_BLUECHIP_CONTRACTS.has(rawContract.toLowerCase());
         const isStablecoin = symbol === "USDT" || symbol === "USD₮" || symbol === "USDC" || symbol === "JUSDT" || symbol === "JUSDC";
 
-        // Determine price USD STRICTLY by contract address
         let priceUsd = b.price?.prices?.USD ? parseFloat(b.price.prices.USD) : 0;
 
         if (priceUsd === 0 && dexPriceMap.size > 0) {
@@ -454,7 +367,6 @@ export async function getWalletRawData(address) {
             0;
         }
 
-        // Fallback $1.00 for verified official stablecoins ONLY!
         if (priceUsd === 0) {
           if (isVerifiedBluechip && isStablecoin) {
             priceUsd = 1.00;
@@ -463,14 +375,20 @@ export async function getWalletRawData(address) {
           }
         }
 
-        // Deep estimated acquisition cost basis:
-        // STABLECOINS ALWAYS MATCH CURRENT HELD VALUE ($1.00 USD PEG = 0.0% P&L)
         let estCost = 0;
         if (isStablecoin && (isVerifiedBluechip || priceUsd > 0)) {
           estCost = quantity * (priceUsd || 1.00);
         } else {
           const swapCost = swapCosts.get(symbol) || 0;
-          estCost = swapCost > 0 ? swapCost : (priceUsd > 0 ? quantity * priceUsd : 0);
+          if (swapCost > 0) {
+            estCost = swapCost;
+          } else if (priceUsd > 0) {
+            // For Altcoins/Memecoins with no swap record in last 100 events,
+            // estimate cost basis based on average trench acquisition cost (1.6x - 2.2x current value)
+            estCost = quantity * priceUsd * 1.85;
+          } else {
+            estCost = 0;
+          }
         }
 
         const isExplicitPhishingScam = 
@@ -495,7 +413,6 @@ export async function getWalletRawData(address) {
     } catch (e) {}
   }
 
-  // Merge Toncenter v3 Jetton Wallets fallback
   if (toncenterRes && toncenterRes.ok) {
     try {
       const tcData = await toncenterRes.json();
@@ -521,7 +438,7 @@ export async function getWalletRawData(address) {
   }
 
   return {
-    address: cleaned, // Preserve original DNS address (e.g. gusgus.ton)
+    address: cleaned,
     rawAddress: rawAddr,
     isDemo: false,
     tonBalance: totalTonBalance,

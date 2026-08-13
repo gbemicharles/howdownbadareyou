@@ -18,13 +18,11 @@ app.use(cors());
 app.use(express.json());
 app.use(rateLimiterMiddleware);
 
-// ── Temp image store for Telegram Story sharing ──────────────────────────────
-const tempImages = new Map(); // id → { buf, mime, expiresAt }
-const TEMP_IMAGE_TTL = 10 * 60 * 1000; // 10 minutes
+const tempImages = new Map();
+const TEMP_IMAGE_TTL = 10 * 60 * 1000;
 
 app.use(express.json({ limit: '10mb' }));
 
-// Upload a card image (base64) and return a short-lived public URL
 app.post('/api/share-image', (req, res) => {
   try {
     const { imageData, mimeType = 'image/png' } = req.body;
@@ -34,7 +32,6 @@ app.post('/api/share-image', (req, res) => {
     const id = crypto.randomBytes(12).toString('hex');
     tempImages.set(id, { buf, mime: mimeType, expiresAt: Date.now() + TEMP_IMAGE_TTL });
 
-    // Purge old entries
     for (const [k, v] of tempImages) {
       if (v.expiresAt < Date.now()) tempImages.delete(k);
     }
@@ -45,7 +42,6 @@ app.post('/api/share-image', (req, res) => {
   }
 });
 
-// Serve the uploaded image
 app.get('/api/share-image/:id', (req, res) => {
   const entry = tempImages.get(req.params.id);
   if (!entry || entry.expiresAt < Date.now()) return res.status(404).send('Not found');
@@ -53,9 +49,7 @@ app.get('/api/share-image/:id', (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.send(entry.buf);
 });
-// ─────────────────────────────────────────────────────────────────────────────
 
-// Get Demo Wallets endpoint
 app.get('/api/demos', (req, res) => {
   res.json(Object.values(DEMO_WALLETS).map(d => ({
     address: d.address,
@@ -63,13 +57,11 @@ app.get('/api/demos', (req, res) => {
   })));
 });
 
-// Main Roast API Endpoint
 app.get('/api/roast/:address', async (req, res) => {
   try {
     const rawAddress = req.params.address;
     const bypassCache = req.query.nocache === 'true' || req.query.t;
 
-    // 1. Validate TON Address
     if (!isValidTonAddress(rawAddress)) {
       return res.status(400).json({
         error: "That's not a TON wallet bro 💀"
@@ -78,7 +70,6 @@ app.get('/api/roast/:address', async (req, res) => {
 
     const address = rawAddress.trim();
 
-    // 2. Check Cache (unless bypassed)
     if (!bypassCache) {
       const cached = getCachedWalletData(address);
       if (cached) {
@@ -86,25 +77,18 @@ app.get('/api/roast/:address', async (req, res) => {
       }
     }
 
-    // 3. Retrieve raw blockchain data
     const rawData = await getWalletRawData(address);
-
-    // 4. Analyze Wallet
     const analysis = analyzeWallet(rawData);
 
-    // Handle Empty Wallet case
     if (analysis.totalPositionsCount === 0 && analysis.totalCurrentValueUsd === 0) {
       return res.json({
         emptyWallet: true,
-        walletAddress: address,
+        walletAddress: rawData.address || address,
         message: "We found the wallet.\n\nUnfortunately, there's nothing here to roast 💀"
       });
     }
 
-    // 5. Calculate Scores & Personality
     const scoreData = calculatePersonalityAndScores(analysis);
-
-    // 6. Generate Roasts & Share Text
     const roasts = generateRoasts(analysis, scoreData.personality, scoreData);
 
     const concentrationComment = getConcentrationComment(
@@ -113,7 +97,8 @@ app.get('/api/roast/:address', async (req, res) => {
 
     const responsePayload = {
       emptyWallet: false,
-      walletAddress: address,
+      walletAddress: rawData.address || address,
+      rawAddress: rawData.rawAddress,
       isDemo: analysis.isDemo,
       totalCurrentValueUsd: analysis.totalCurrentValueUsd,
       estimatedCostBasisUsd: analysis.estimatedCostBasisUsd,
@@ -121,6 +106,7 @@ app.get('/api/roast/:address', async (req, res) => {
       estimatedPnlPercent: analysis.estimatedPnlPercent,
       downBadScore: scoreData.downBadScore,
       isProfitable: scoreData.isProfitable,
+      isBreakeven: scoreData.isBreakeven,
       levelText: scoreData.levelText,
       personality: scoreData.personality,
       metrics: scoreData.metrics,
@@ -132,13 +118,13 @@ app.get('/api/roast/:address', async (req, res) => {
       biggestLoser: analysis.biggestLoser,
       biggestWinner: analysis.biggestWinner,
       concentrationComment,
+      copiumMetrics: analysis.copiumMetrics,
+      astrology: analysis.astrology,
       roasts,
       positions: analysis.positions
     };
 
-    // Save to Cache
     setCachedWalletData(address, responsePayload);
-
     return res.json(responsePayload);
 
   } catch (err) {
@@ -149,7 +135,6 @@ app.get('/api/roast/:address', async (req, res) => {
   }
 });
 
-// Serve built frontend in production
 if (isProd) {
   const distPath = path.resolve(__dirname, '..', 'dist');
   app.use(express.static(distPath));
