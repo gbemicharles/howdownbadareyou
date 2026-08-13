@@ -63,6 +63,10 @@ export default function TelegramStickerGenerator({ roastData }) {
   const mascot = PEDRO_CHARACTER_ARTS[activeKey] || PEDRO_CHARACTER_ARTS.rockstar;
   const pedroImgDataUri = PEDRO_DATA_URIS[activeKey] || PEDRO_DATA_URIS.rockstar;
 
+  const displayAddr = (walletAddress && walletAddress.toLowerCase().endsWith('.ton'))
+    ? walletAddress
+    : (walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : "TON Wallet");
+
   const generateStickerBlob = async () => {
     if (!stickerRef.current) return null;
     
@@ -70,18 +74,13 @@ export default function TelegramStickerGenerator({ roastData }) {
       await document.fonts.ready;
     }
 
-    // Small delay ensures Base64 image is fully rendered in browser layout
     await new Promise(r => setTimeout(r, 100));
 
     return await toBlob(stickerRef.current, {
       pixelRatio: 2,
       width: 512,
       height: 512,
-      backgroundColor: '#090a0f',
-      filter: (node) => {
-        // Exclude outer layout artifacts if any
-        return true;
-      }
+      backgroundColor: '#090a0f'
     });
   };
 
@@ -180,7 +179,7 @@ export default function TelegramStickerGenerator({ roastData }) {
                   HOW DOWN BAD ARE YOU?
                 </span>
                 <span className="text-[11px] font-mono font-extrabold text-cyan-300">
-                  {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                  {displayAddr}
                 </span>
               </div>
 
