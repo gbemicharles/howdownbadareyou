@@ -23,7 +23,6 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
   const [error, setError] = useState(null);
 
   const [pedroKeyIndex, setPedroKeyIndex] = useState(0);
-  const [isShuffling, setIsShuffling] = useState(false);
 
   const duelCardRef = useRef(null);
 
@@ -36,10 +35,8 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
   const handleRandomizePedro = () => {
     triggerHaptic('selection');
-    setIsShuffling(true);
     const randomIndex = Math.floor(Math.random() * PEDRO_KEYS.length);
     setPedroKeyIndex(randomIndex);
-    setTimeout(() => setIsShuffling(false), 400);
   };
 
   const currentPedroKey = PEDRO_KEYS[pedroKeyIndex] || 'rockstar';
@@ -170,7 +167,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
       
       <div className="max-w-3xl w-full bg-slate-950/95 border border-purple-500/30 rounded-3xl p-4 sm:p-7 space-y-4 relative shadow-2xl mt-8 sm:mt-10 mb-24 pb-20 sm:pb-7">
         
-        {/* Modal Header with 80px+ Top Margin & Prominent Pink Close Button */}
+        {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3 pt-2">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-600 via-purple-600 to-cyan-500 p-0.5 shadow-lg shadow-purple-500/30 shrink-0">
@@ -200,7 +197,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
           </button>
         </div>
 
-        {/* INPUT FORM FOR WALLET A & B WITH ENHANCED AUTO-SCROLL */}
+        {/* INPUT FORM FOR WALLET A & B */}
         <form onSubmit={handleStartDuel} className="space-y-3 bg-slate-900/60 p-3 sm:p-4 rounded-2xl border border-slate-800">
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -274,10 +271,9 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
               
               <button
                 onClick={handleRandomizePedro}
-                disabled={isShuffling}
                 className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-extrabold text-[11px] flex items-center gap-1.5 hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                <Shuffle className={`w-3.5 h-3.5 ${isShuffling ? 'animate-spin' : ''}`} />
+                <Shuffle className="w-3.5 h-3.5" />
                 <span>RANDOMIZE PEDRO 🎲</span>
               </button>
             </div>
@@ -309,11 +305,11 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
                   </div>
                 </div>
 
-                {/* SIDE-BY-SIDE PLAYER A & B CARDS (SIDE BY SIDE ON ALL SCREENS) */}
+                {/* SIDE-BY-SIDE PLAYER A & B CARDS */}
                 <div className="grid grid-cols-2 gap-2 sm:gap-4 relative z-10 my-auto items-stretch">
                   
                   {/* Player A Card */}
-                  <div className={`p-2.5 sm:p-4 rounded-2xl border transition-all flex flex-col justify-between relative ${
+                  <div className={`p-2.5 sm:p-4 rounded-2xl border flex flex-col justify-between relative ${
                     duelResult.winner === 'A'
                       ? 'bg-gradient-to-b from-pink-600/25 to-purple-600/25 border-pink-500 shadow-xl shadow-pink-500/20'
                       : 'bg-slate-900/60 border-slate-800/80 opacity-90'
@@ -362,7 +358,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
                   </div>
 
                   {/* Player B Card */}
-                  <div className={`p-2.5 sm:p-4 rounded-2xl border transition-all flex flex-col justify-between relative ${
+                  <div className={`p-2.5 sm:p-4 rounded-2xl border flex flex-col justify-between relative ${
                     duelResult.winner === 'B'
                       ? 'bg-gradient-to-b from-pink-600/25 to-purple-600/25 border-pink-500 shadow-xl shadow-pink-500/20'
                       : 'bg-slate-900/60 border-slate-800/80 opacity-90'
@@ -425,11 +421,9 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
                     </p>
                   </div>
 
-                  {/* 100% Inline Base64 Pedro Raccoon Standing Natively inside Duel Card */}
+                  {/* 100% Fail-Proof Pedro Raccoon Character */}
                   <div className="col-span-4 sm:col-span-3 flex justify-end items-center relative">
-                    <div className={`w-16 h-16 sm:w-24 sm:h-24 relative flex items-center justify-center transition-all duration-300 ${
-                      isShuffling ? 'scale-90 opacity-40 rotate-6' : 'scale-100 opacity-100 rotate-0'
-                    }`}>
+                    <div className="w-16 h-16 sm:w-24 sm:h-24 relative flex items-center justify-center">
                       <PedroCharacter pedroKey={currentPedroKey} alt="Pedro Raccoon Battle Referee" />
                     </div>
                   </div>
