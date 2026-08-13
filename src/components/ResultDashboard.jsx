@@ -8,6 +8,22 @@ import {
 import CopiumCalculator from './CopiumCalculator';
 import FinancialAstrology from './FinancialAstrology';
 import TelegramStickerGenerator from './TelegramStickerGenerator';
+import { PEDRO_DATA_URIS } from '../assets/pedroDataURIs.js';
+import { PEDRO_ASSETS } from '../assets/pedroAssets.js';
+
+const getPedroKeyForPersonality = (title, isProfitable, score) => {
+  if (isProfitable) return 'rockstar';
+  if (!title) return 'rockstar';
+  const t = title.toUpperCase();
+  if (t.includes('ONE-TOKEN') || t.includes('BELIEVER')) return 'rocket';
+  if (t.includes('BAG COLLECTOR')) return 'diamond';
+  if (t.includes('AIRDROP')) return 'clown';
+  if (t.includes('EXIT LIQUIDITY') || score >= 80) return 'rekt';
+  if (t.includes('DIAMOND')) return 'diamond';
+  if (t.includes('ASTROLOGY') || t.includes('WIZARD')) return 'wizard';
+  if (score >= 50) return 'copium';
+  return 'rockstar';
+};
 
 export default function ResultDashboard({ roastData, onReset, onOpenShareCard, onOpenCert }) {
   const {
@@ -33,7 +49,6 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
   } = roastData;
 
   useEffect(() => {
-    // If wallet is profitable or deeply legendary, throw confetti
     if (isProfitable) {
       confetti({
         particleCount: 100,
@@ -43,7 +58,6 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
     }
   }, [isProfitable]);
 
-  // Pagination state (10 positions per page)
   const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -80,6 +94,13 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
     return `${sign}${num.toFixed(1)}%`;
   };
 
+  const displayAddr = (walletAddress && walletAddress.toLowerCase().endsWith('.ton'))
+    ? walletAddress
+    : (walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : "TON Wallet");
+
+  const pedroKey = getPedroKeyForPersonality(personality?.title, isProfitable, downBadScore);
+  const pedroImg = PEDRO_DATA_URIS[pedroKey] || PEDRO_ASSETS[pedroKey] || PEDRO_DATA_URIS.rockstar;
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-fade-in pb-12 px-3 sm:px-4">
       
@@ -92,7 +113,7 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
           <div className="min-w-0">
             <h2 className="text-xs sm:text-sm font-extrabold text-white tracking-tight">WALLET DIAGNOSIS REPORT</h2>
             <p className="text-[11px] sm:text-xs font-mono text-slate-400 truncate">
-              Address: <span className="text-pink-400 font-bold">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
+              Address: <span className="text-pink-400 font-bold">{displayAddr}</span>
             </p>
           </div>
         </div>
@@ -125,32 +146,47 @@ export default function ResultDashboard({ roastData, onReset, onOpenShareCard, o
         </div>
       </div>
 
-      {/* 2. MAIN HERO DOWN BAD SCORE CARD */}
-      <div className="glass-panel p-5 sm:p-10 rounded-3xl text-center space-y-6 relative overflow-hidden">
+      {/* 2. MAIN HERO DOWN BAD SCORE CARD WITH NATIVE PEDRO RACCOON CHARACTER */}
+      <div className="glass-panel p-5 sm:p-8 rounded-3xl space-y-6 relative overflow-hidden">
         
-        <div className="space-y-2 relative z-10">
-          <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-widest text-slate-400 bg-slate-900/80 px-3.5 py-1.5 rounded-full border border-slate-800">
-            {isProfitable ? 'PROFIT SURVIVOR STATUS 🏆' : 'YOUR DOWN BAD SCORE 💀'}
-          </span>
-
-          <h1 className={`text-4xl sm:text-7xl font-black tracking-tight ${
-            isProfitable ? 'text-emerald-400' : 'text-gradient-pink'
-          }`}>
-            {isProfitable ? levelText : `${downBadScore}% DOWN BAD`}
-          </h1>
-
-          <div className="pt-2">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-2xl bg-purple-500/20 border border-purple-500/40 text-purple-300 font-extrabold text-xs sm:text-sm">
-              <Award className="w-4 h-4 text-purple-400" />
-              <span>{personality.title}</span>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative z-10">
+          
+          <div className="col-span-1 md:col-span-8 space-y-3 text-center md:text-left">
+            <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-widest text-slate-400 bg-slate-900/80 px-3.5 py-1.5 rounded-full border border-slate-800 inline-block">
+              {isProfitable ? 'PROFIT SURVIVOR STATUS 🏆' : 'YOUR DOWN BAD SCORE 💀'}
             </span>
-          </div>
-        </div>
 
-        {/* Short Diagnosis Quote */}
-        <p className="text-xs sm:text-base font-medium text-slate-300 max-w-2xl mx-auto italic leading-relaxed">
-          "{personality.description}"
-        </p>
+            <h1 className={`text-4xl sm:text-6xl font-black tracking-tight ${
+              isProfitable ? 'text-emerald-400' : 'text-gradient-pink'
+            }`}>
+              {isProfitable ? levelText : `${downBadScore}% DOWN BAD`}
+            </h1>
+
+            <div>
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-2xl bg-purple-500/20 border border-purple-500/40 text-purple-300 font-extrabold text-xs sm:text-sm">
+                <Award className="w-4 h-4 text-purple-400" />
+                <span>{personality.title}</span>
+              </span>
+            </div>
+
+            <p className="text-xs sm:text-sm font-medium text-slate-300 italic leading-relaxed pt-1">
+              "{personality.description}"
+            </p>
+          </div>
+
+          {/* Native Standing Pedro Raccoon Character Artwork */}
+          <div className="col-span-1 md:col-span-4 flex justify-center items-center">
+            <div className="w-36 h-36 sm:w-44 sm:h-44 relative flex items-center justify-center filter drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
+              <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-2xl pointer-events-none" />
+              <img 
+                src={pedroImg} 
+                alt="Pedro Raccoon Character" 
+                className="w-full h-full object-contain pointer-events-none drop-shadow-[0_5px_15px_rgba(0,0,0,0.9)]" 
+              />
+            </div>
+          </div>
+
+        </div>
 
         {/* Key Portfolio Metrics Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-4 border-t border-slate-800/80 font-mono text-left">
