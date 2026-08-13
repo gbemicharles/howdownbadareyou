@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
+import { inlineContainerImages } from '../utils/imagePreloader.js';
+import { triggerHaptic } from '../utils/haptics.js';
 import { X, Swords, Trophy, Skull, Share2, Loader2, Sparkles, Crown, Download, Copy, Check, Shuffle, ArrowLeft } from 'lucide-react';
 import { compareWalletsForDuel } from '../../server/services/duelEngine';
 import { getWalletRawData } from '../../server/services/tonProvider';
@@ -43,6 +45,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
   };
 
   const handleRandomizePedro = () => {
+    triggerHaptic('selection');
     setIsShuffling(true);
     const randomIndex = Math.floor(Math.random() * PEDRO_KEYS.length);
     setPedroKeyIndex(randomIndex);
@@ -57,7 +60,6 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
       const res = await fetch(`/api/roast/${encodeURIComponent(addr.trim())}`);
       if (res.ok) {
         const data = await res.json();
-        // Ensure downBadScore fallback
         if (data.downBadScore === undefined || data.downBadScore === null) {
           data.downBadScore = 0;
         }
@@ -90,6 +92,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
     }
 
     try {
+      triggerHaptic('impact', 'heavy');
       setIsLoading(true);
       setError(null);
       handleRandomizePedro();
@@ -111,9 +114,14 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
   const handleDownloadDuelImg = async () => {
     if (!duelCardRef.current || isGeneratingImg) return;
+    triggerHaptic('impact', 'medium');
 
     try {
       setIsGeneratingImg(true);
+
+      // Pre-inline Pedro image to Base64 before rendering to canvas!
+      await inlineContainerImages(duelCardRef.current);
+
       const blob = await toBlob(duelCardRef.current, {
         cacheBust: true,
         pixelRatio: 3,
@@ -132,9 +140,14 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
   const handleCopyDuelImg = async () => {
     if (!duelCardRef.current || isGeneratingImg) return;
+    triggerHaptic('impact', 'medium');
 
     try {
       setIsGeneratingImg(true);
+
+      // Pre-inline Pedro image to Base64 before rendering to canvas!
+      await inlineContainerImages(duelCardRef.current);
+
       const blob = await toBlob(duelCardRef.current, {
         cacheBust: true,
         pixelRatio: 3,
@@ -160,6 +173,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
   const handleShareDuelOnX = async () => {
     if (!duelResult) return;
+    triggerHaptic('impact', 'light');
     await handleCopyDuelImg();
     const tweetText = encodeURIComponent(duelResult.tweetText);
     const intentUrl = `https://x.com/intent/tweet?text=${tweetText}`;
@@ -428,7 +442,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
             </div>
             {/* ---------------- END 16:9 SIDE-BY-SIDE CANVAS ---------------- */}
 
-            {/* ACTION BUTTONS ROW (BACK, DOWNLOAD IMAGE, COPY IMAGE, SHARE ON X) */}
+            {/* ACTION BUTTONS ROW (NEW DUEL, DOWNLOAD IMAGE, COPY IMAGE, SHARE ON X) */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
 
               <button
@@ -457,7 +471,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
                 ) : (
                   <>
                     <Download className="w-4 h-4" />
-                    <span>DOWNLOAD DUEL CARD 🖼️</span>
+                    <span>DOWNLOAD CARD 🖼️</span>
                   </>
                 )}
               </button>
@@ -475,7 +489,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
                 ) : (
                   <>
                     <Copy className="w-4 h-4 text-cyan-400" />
-                    <span>COPY DUEL CARD 📋</span>
+                    <span>COPY CARD 📋</span>
                   </>
                 )}
               </button>
@@ -485,7 +499,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
                 className="px-4 py-3 rounded-2xl bg-black hover:bg-slate-900 border border-slate-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
               >
                 <Share2 className="w-4 h-4 text-pink-400" />
-                <span>POST DUEL ON X 🐦</span>
+                <span>POST ON X 🐦</span>
               </button>
 
             </div>

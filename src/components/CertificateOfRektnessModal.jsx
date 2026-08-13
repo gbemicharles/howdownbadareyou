@@ -1,6 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
+import { inlineContainerImages } from '../utils/imagePreloader.js';
+import { triggerHaptic } from '../utils/haptics.js';
 import { QRCodeSVG } from 'qrcode.react';
 import { X, Download, Share2, Award, Sparkles, Check, Loader2, ShieldCheck, Copy } from 'lucide-react';
 
@@ -28,9 +30,12 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
 
   const handleDownloadCert = async () => {
     if (!certRef.current || isGenerating) return;
+    triggerHaptic('impact', 'medium');
 
     try {
       setIsGenerating(true);
+      await inlineContainerImages(certRef.current);
+
       const blob = await toBlob(certRef.current, {
         cacheBust: true,
         pixelRatio: 3,
@@ -49,9 +54,12 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
 
   const handleCopyCert = async () => {
     if (!certRef.current || isGenerating) return;
+    triggerHaptic('impact', 'medium');
 
     try {
       setIsGenerating(true);
+      await inlineContainerImages(certRef.current);
+
       const blob = await toBlob(certRef.current, {
         cacheBust: true,
         pixelRatio: 3,
@@ -76,6 +84,7 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
   };
 
   const handleShareCertOnX = async () => {
+    triggerHaptic('impact', 'light');
     await handleCopyCert();
     const tweetText = encodeURIComponent(`📜 OFFICIAL CERTIFICATE OF REKTNESS 📜\n\nThis certifies that TON Wallet ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)} has officially achieved ${downBadScore}% Down Bad score!\n\nRank: ${rankTitle}\nGet your certificate on Telegram at https://t.me/howdownbadareyoubot 💀 #TON #Web3`);
     const intentUrl = `https://x.com/intent/tweet?text=${tweetText}`;
@@ -83,9 +92,9 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-lg overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-lg overflow-y-auto">
       
-      <div className="max-w-3xl w-full bg-slate-950/95 border border-amber-500/30 rounded-3xl p-5 sm:p-7 space-y-4 relative shadow-2xl my-8">
+      <div className="max-w-3xl w-full bg-slate-950/95 border border-amber-500/30 rounded-3xl p-4 sm:p-7 space-y-4 relative shadow-2xl my-6 pb-20 sm:pb-7">
         
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -96,10 +105,10 @@ export default function CertificateOfRektnessModal({ roastData, onClose }) {
               </div>
             </div>
             <div>
-              <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+              <h3 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
                 OFFICIAL CERTIFICATE OF REKTNESS 📜
               </h3>
-              <p className="text-xs font-bold text-slate-400">
+              <p className="text-[11px] sm:text-xs font-bold text-slate-400">
                 16:9 Landscape Cyber Parchment Diploma formatted for Twitter/X posts!
               </p>
             </div>

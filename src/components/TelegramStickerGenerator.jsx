@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
+import { inlineContainerImages } from '../utils/imagePreloader.js';
+import { triggerHaptic } from '../utils/haptics.js';
 import { Download, Check, Loader2, Copy, Smile, Shuffle, ExternalLink } from 'lucide-react';
 
 const PEDRO_KEYS = ['rockstar', 'rekt', 'copium', 'wizard', 'clown', 'diamond', 'rocket'];
@@ -58,6 +60,7 @@ export default function TelegramStickerGenerator({ roastData }) {
   }, []);
 
   const handleRandomizeSticker = () => {
+    triggerHaptic('selection');
     setIsShuffling(true);
     const randomIndex = Math.floor(Math.random() * PEDRO_KEYS.length);
     setPedroKeyIndex(randomIndex);
@@ -69,8 +72,13 @@ export default function TelegramStickerGenerator({ roastData }) {
 
   const handleSaveAndOpenStickersBot = async () => {
     if (!stickerRef.current || isGenerating) return;
+    triggerHaptic('impact', 'medium');
     try {
       setIsGenerating(true);
+
+      // Pre-inline Pedro image to base64 before html-to-image render!
+      await inlineContainerImages(stickerRef.current);
+
       const blob = await toBlob(stickerRef.current, {
         cacheBust: true,
         pixelRatio: 3,
@@ -86,7 +94,8 @@ export default function TelegramStickerGenerator({ roastData }) {
     } finally {
       setIsGenerating(false);
     }
-    // Open @Stickers bot — use Telegram's native opener when inside the app
+
+    // Open @Stickers bot
     const tg = window.Telegram?.WebApp;
     if (tg?.openTelegramLink) {
       tg.openTelegramLink('https://t.me/Stickers');
@@ -97,9 +106,14 @@ export default function TelegramStickerGenerator({ roastData }) {
 
   const handleDownloadSticker = async () => {
     if (!stickerRef.current || isGenerating) return;
+    triggerHaptic('impact', 'medium');
 
     try {
       setIsGenerating(true);
+
+      // Pre-inline Pedro image to base64 before html-to-image render!
+      await inlineContainerImages(stickerRef.current);
+
       const blob = await toBlob(stickerRef.current, {
         cacheBust: true,
         pixelRatio: 3,
@@ -118,57 +132,23 @@ export default function TelegramStickerGenerator({ roastData }) {
     }
   };
 
-  const handleCopySticker = async () => {
-    if (!stickerRef.current || isGenerating) return;
-
-    try {
-      setIsGenerating(true);
-      const blob = await toBlob(stickerRef.current, {
-        cacheBust: true,
-        pixelRatio: 3,
-        width: 512,
-        height: 512,
-        backgroundColor: '#090a0f'
-      });
-
-      if (blob && navigator.clipboard && window.ClipboardItem) {
-        await navigator.clipboard.write([
-          new ClipboardItem({ 'image/png': blob })
-        ]);
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 3000);
-      } else {
-        handleDownloadSticker();
-      }
-    } catch (err) {
-      console.error('Failed to copy sticker:', err);
-      handleDownloadSticker();
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   return (
-    <div className="bg-slate-950/80 border border-pink-500/30 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden my-8 backdrop-blur-md">
+    <div className="bg-slate-950/80 border border-pink-500/30 rounded-3xl p-5 sm:p-7 space-y-6 shadow-2xl relative overflow-hidden backdrop-blur-md">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4 relative z-10">
+      <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-600 via-purple-600 to-cyan-400 p-0.5 shadow-lg shadow-pink-500/30">
-            <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-xl overflow-hidden p-1">
-              <img 
-                src={mascot.image} 
-                alt="Pedro Raccoon" 
-                className="w-full h-full object-contain" 
-              />
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-600 to-purple-600 p-0.5 shadow-lg shadow-pink-500/30 shrink-0">
+            <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+              <Smile className="w-5 h-5 text-pink-400 animate-pulse" />
             </div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-              HOW DOWN BAD ARE YOU TELEGRAM STICKER 🦝📦
+            <h3 className="text-base sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
+              TELEGRAM STICKER GENERATOR 🖼️
             </h3>
             <p className="text-xs font-bold text-slate-400">
-              Export 512x512 Telegram Meme Stickers for your Down Bad wallet score!
+              Export 512x512 PNG stickers to upload to Telegram's @Stickers bot!
             </p>
           </div>
         </div>
@@ -176,109 +156,100 @@ export default function TelegramStickerGenerator({ roastData }) {
         <button
           onClick={handleRandomizeSticker}
           disabled={isShuffling}
-          className="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md transition-all cursor-pointer disabled:opacity-50"
+          className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-extrabold text-xs flex items-center gap-1.5 hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <Shuffle className={`w-3.5 h-3.5 ${isShuffling ? 'animate-spin' : ''}`} />
-          <span>RANDOMIZE STICKER 🎲</span>
+          <span>RANDOMIZE PEDRO 🎲</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center relative z-10">
-        
-        {/* 512x512 STICKER CANVAS PREVIEW */}
-        <div className="flex justify-center">
+      {/* 512x512 STICKER CANVAS */}
+      <div className="flex justify-center">
+        <div className="overflow-hidden rounded-3xl border-2 border-pink-500/40 shadow-2xl max-w-[340px] w-full">
+          
           <div 
             ref={stickerRef}
-            className="w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] bg-[#090a0f] border-2 border-slate-800 rounded-3xl p-5 flex flex-col justify-between items-center text-center relative overflow-hidden shadow-2xl"
+            className="w-[512px] h-[512px] bg-[#090a0f] p-8 space-y-6 relative overflow-hidden text-white font-sans flex flex-col justify-between origin-top-left scale-[0.664] -mr-[172px] -mb-[172px]"
           >
-            {/* 100% TRANSPARENT PEDRO RACCOON CHARACTER ARTWORK */}
-            <div className="w-36 h-36 sm:w-44 sm:h-44 relative flex items-center justify-center -my-1">
-              <img 
-                src={mascot.image} 
-                alt="Pedro Raccoon Pose" 
-                className={`w-full h-full object-contain drop-shadow-[0_0_25px_rgba(236,72,153,0.5)] scale-110 transition-all duration-300 ${
-                  isShuffling ? 'scale-90 opacity-40 rotate-6' : 'scale-110 opacity-100 rotate-0'
-                }`}
-              />
-            </div>
+            {/* Ambient Background Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-b from-pink-950/40 via-purple-950/20 to-slate-950 pointer-events-none" />
 
-            {/* Score & Title */}
-            <div className="space-y-0.5">
-              <h2 className={`text-2xl sm:text-3xl font-black font-mono tracking-tight ${
-                isProfitable ? 'text-emerald-400' : 'text-white'
-              }`}>
-                {isProfitable 
-                  ? `+${Math.round(estimatedPnlPercent || 0)}% UP BAD` 
-                  : (downBadScore === 0 ? '0% DOWN BAD' : `${downBadScore}% DOWN BAD`)}
-              </h2>
-              <span className="text-[9px] font-black uppercase tracking-widest text-pink-400 block bg-slate-900/90 px-3 py-0.5 rounded-full border border-slate-800">
-                {personality.title}
+            {/* Sticker Top Header */}
+            <div className="flex items-center justify-between border-b border-pink-500/30 pb-3 relative z-10">
+              <span className="text-xs font-black uppercase tracking-widest text-pink-400">
+                HOW DOWN BAD ARE YOU?
+              </span>
+              <span className="text-[11px] font-mono font-extrabold text-cyan-300">
+                {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
               </span>
             </div>
 
-            {/* Short Quote */}
-            <p className="text-[10px] font-bold text-slate-300 italic px-2 leading-tight">
-              "{mascot.quote}"
-            </p>
+            {/* Main Center Score & Pedro Character Artwork */}
+            <div className="grid grid-cols-12 gap-4 items-center relative z-10 my-auto">
+              
+              <div className="col-span-7 space-y-2">
+                <h1 className={`text-5xl font-black tracking-tight ${
+                  isProfitable ? 'text-emerald-400' : 'text-pink-500'
+                }`}>
+                  {isProfitable ? 'SURVIVOR 🏆' : `${downBadScore}% DOWN BAD`}
+                </h1>
+                <div className="text-xs font-black text-purple-300 uppercase tracking-wider">
+                  {personality.title}
+                </div>
+                <p className="text-xs font-bold text-slate-300 italic">
+                  "{mascot.quote}"
+                </p>
+              </div>
 
-            {/* Watermark Footer */}
-            <div className="text-[8px] font-extrabold text-slate-500 uppercase tracking-widest pt-1 border-t border-slate-800/80 w-full flex justify-between font-mono">
-              <span>T.ME/HOWDOWNBADAREYOUBOT</span>
-              <span>MADE BY GBEMICHARLES</span>
+              {/* Transparent Pedro Raccoon Character */}
+              <div className="col-span-5 flex justify-end items-center relative">
+                <div className="w-36 h-36 relative flex items-center justify-center">
+                  <img 
+                    src={mascot.image} 
+                    alt={mascot.title}
+                    className="w-full h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] scale-125"
+                  />
+                </div>
+              </div>
+
             </div>
-          </div>
-        </div>
 
-        {/* CONTROLS & DESCRIPTION */}
-        <div className="space-y-4">
+            {/* Sticker Bottom Watermark */}
+            <div className="flex items-end justify-between border-t border-pink-500/30 pt-3 relative z-10 font-mono text-xs">
+              <span className="font-extrabold text-cyan-300">T.ME/HOWDOWNBADAREYOUBOT</span>
+              <span className="font-extrabold text-pink-400 uppercase">MADE BY GBEMICHARLES</span>
+            </div>
 
-          {/* Step-by-step guide */}
-          <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-3 text-xs">
-            <span className="font-extrabold text-purple-300 uppercase tracking-wider block">
-              HOW TO ADD TO YOUR STICKER PACK 📦
-            </span>
-            <ol className="space-y-2 text-slate-300 font-medium leading-relaxed list-none">
-              {[
-                ['1', 'Tap "SAVE & OPEN @Stickers" below — it saves your sticker and opens the Stickers bot.'],
-                ['2', 'In @Stickers bot, send /addsticker (or /newpack to create one first).'],
-                ['3', 'Send the saved PNG file when the bot asks for the sticker image.'],
-                ['4', 'Send an emoji (e.g. 💀) as the label, then /done.'],
-                ['5', 'Your sticker is now in your pack — send it to any group! 🎉'],
-              ].map(([n, text]) => (
-                <li key={n} className="flex gap-2.5 items-start">
-                  <span className="w-5 h-5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5">{n}</span>
-                  <span>{text}</span>
-                </li>
-              ))}
-            </ol>
           </div>
 
-          {/* Primary CTA */}
-          <button
-            onClick={handleSaveAndOpenStickersBot}
-            disabled={isGenerating}
-            className="w-full px-4 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all cursor-pointer disabled:opacity-50"
-          >
-            {isGenerating ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /><span>Saving sticker...</span></>
-            ) : downloadSuccess ? (
-              <><Check className="w-4 h-4 text-emerald-400" /><span>SAVED! Opening @Stickers bot...</span></>
-            ) : (
-              <><ExternalLink className="w-4 h-4" /><span>SAVE & OPEN @Stickers BOT ✈️</span></>
-            )}
-          </button>
-
-          {/* Secondary: just download */}
-          <button
-            onClick={handleDownloadSticker}
-            disabled={isGenerating}
-            className="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-300 font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-          >
-            <Download className="w-4 h-4 text-pink-400" />
-            <span>JUST SAVE STICKER (512×512)</span>
-          </button>
-
         </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+        
+        <button
+          onClick={handleSaveAndOpenStickersBot}
+          disabled={isGenerating}
+          className="w-full px-4 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all cursor-pointer disabled:opacity-50"
+        >
+          {isGenerating ? (
+            <><Loader2 className="w-4 h-4 animate-spin" /><span>Saving sticker...</span></>
+          ) : downloadSuccess ? (
+            <><Check className="w-4 h-4 text-emerald-400" /><span>SAVED! Opening @Stickers bot...</span></>
+          ) : (
+            <><ExternalLink className="w-4 h-4" /><span>SAVE & OPEN @Stickers BOT ✈️</span></>
+          )}
+        </button>
+
+        <button
+          onClick={handleDownloadSticker}
+          disabled={isGenerating}
+          className="w-full px-4 py-3.5 rounded-2xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-300 font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+        >
+          <Download className="w-4 h-4 text-pink-400" />
+          <span>JUST SAVE STICKER (512×512)</span>
+        </button>
 
       </div>
 

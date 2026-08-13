@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
+import { inlineContainerImages } from '../utils/imagePreloader.js';
+import { triggerHaptic } from '../utils/haptics.js';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
   X, Download, Share2, Copy, Sparkles, Check, Loader2, 
@@ -62,6 +64,7 @@ export default function ResultCardModal({ roastData, onClose }) {
   }, []);
 
   const handleRandomize = () => {
+    triggerHaptic('selection');
     setIsShuffling(true);
 
     const randomTheme = Math.floor(Math.random() * PRESET_BACKGROUNDS.length);
@@ -79,9 +82,14 @@ export default function ResultCardModal({ roastData, onClose }) {
 
   const handleDownloadCard = async () => {
     if (!cardRef.current || isGenerating) return;
+    triggerHaptic('impact', 'medium');
 
     try {
       setIsGenerating(true);
+
+      // Pre-inline Pedro image to Base64 before html-to-image rendering!
+      await inlineContainerImages(cardRef.current);
+
       const blob = await toBlob(cardRef.current, {
         cacheBust: true,
         pixelRatio: 3,
@@ -100,9 +108,14 @@ export default function ResultCardModal({ roastData, onClose }) {
 
   const handleCopyCardImage = async () => {
     if (!cardRef.current || isGenerating) return;
+    triggerHaptic('impact', 'medium');
 
     try {
       setIsGenerating(true);
+
+      // Pre-inline Pedro image to Base64 before html-to-image rendering!
+      await inlineContainerImages(cardRef.current);
+
       const blob = await toBlob(cardRef.current, {
         cacheBust: true,
         pixelRatio: 3,
@@ -126,79 +139,28 @@ export default function ResultCardModal({ roastData, onClose }) {
     }
   };
 
-  const [shareToast, setShareToast] = useState('');
-
-  const showToast = (msg) => {
-    setShareToast(msg);
-    setTimeout(() => setShareToast(''), 3500);
-  };
-
   const handlePostToXWithImage = async () => {
     if (!cardRef.current || isGenerating) return;
+    triggerHaptic('impact', 'light');
     try {
       setIsGenerating(true);
+      await inlineContainerImages(cardRef.current);
       const blob = await toBlob(cardRef.current, { cacheBust: true, pixelRatio: 3, backgroundColor: '#090a0f' });
       await saveImageBlob(blob, `downbad-card-${walletAddress.slice(0, 6)}.png`);
-    } catch (e) {
-      console.error('X image save failed:', e);
-    } finally {
+    } catch (e) {} finally {
       setIsGenerating(false);
     }
-    const tweetText = encodeURIComponent(`💀 Check out my TON Wallet Diagnosis! I scored ${isProfitable ? 'PROFIT SURVIVOR' : `${downBadScore}% DOWN BAD`}.\n\nTest your wallet → https://t.me/howdownbadareyoubot #TON #Web3 #DeFi`);
-    window.open(`https://x.com/intent/tweet?text=${tweetText}`, '_blank', 'noopener,noreferrer');
-    showToast('Card saved! Attach it to your post on X 📎');
-  };
-
-  const handleShareToTelegramStory = async () => {
-    if (!cardRef.current || isGenerating) return;
-    try {
-      setIsGenerating(true);
-
-      // Generate card as blob → base64
-      const blob = await toBlob(cardRef.current, { cacheBust: true, pixelRatio: 3, backgroundColor: '#090a0f' });
-      const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-
-      // Upload to server to get a public URL
-      const res = await fetch('/api/share-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageData: base64, mimeType: 'image/png' })
-      });
-      const { url } = await res.json();
-
-      // Build absolute URL for Telegram
-      const absoluteUrl = `${window.location.origin}${url}`;
-
-      const tg = window.Telegram?.WebApp;
-      if (tg?.shareToStory) {
-        tg.shareToStory(absoluteUrl, {
-          text: `💀 I scored ${isProfitable ? 'PROFIT SURVIVOR' : `${downBadScore}% DOWN BAD`} on HOW DOWN BAD ARE YOU?\n\nCheck your wallet → t.me/howdownbadareyoubot`,
-          widget_link: { url: 'https://t.me/howdownbadareyoubot', name: 'HOW DOWN BAD ARE YOU?' }
-        });
-      } else {
-        // Fallback outside Telegram — just download
-        await saveImageBlob(blob, `downbad-card-${walletAddress.slice(0, 6)}.png`);
-        showToast('Open in Telegram to share to Status 📲');
-      }
-    } catch (e) {
-      console.error('Telegram story share failed:', e);
-      showToast('Failed to share. Try downloading instead.');
-    } finally {
-      setIsGenerating(false);
-    }
+    const tweetText = encodeURIComponent(`💀 Check out my TON Wallet Diagnosis report! I scored ${isProfitable ? 'PROFIT SURVIVOR' : `${downBadScore}% DOWN BAD`}.\n\nTest your wallet on Telegram at https://t.me/howdownbadareyoubot #TON #Web3`);
+    const intentUrl = `https://x.com/intent/tweet?text=${tweetText}`;
+    window.open(intentUrl, '_blank', 'noopener,noreferrer');
   };
 
   const formatUsd = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num || 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-3 bg-black/85 backdrop-blur-lg overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-lg overflow-y-auto">
       
-      <div className="max-w-3xl w-full bg-slate-950/95 border border-pink-500/30 rounded-3xl p-4 sm:p-6 space-y-4 relative shadow-2xl my-4">
+      <div className="max-w-3xl w-full bg-slate-950/95 border border-pink-500/30 rounded-3xl p-4 sm:p-7 space-y-4 relative shadow-2xl my-6 pb-20 sm:pb-7">
         
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -209,10 +171,10 @@ export default function ResultCardModal({ roastData, onClose }) {
               </div>
             </div>
             <div>
-              <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+              <h3 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
                 HOW DOWN BAD ARE YOU RESULT CARD 🖼️💀
               </h3>
-              <p className="text-xs font-bold text-slate-400">
+              <p className="text-[11px] sm:text-xs font-bold text-slate-400">
                 Export and share your official TON wallet diagnosis card!
               </p>
             </div>
@@ -241,7 +203,10 @@ export default function ResultCardModal({ roastData, onClose }) {
 
           {/* Hide Holdings Privacy Toggle Button */}
           <button
-            onClick={() => setHideHoldings(!hideHoldings)}
+            onClick={() => {
+              triggerHaptic('selection');
+              setHideHoldings(!hideHoldings);
+            }}
             className={`py-3 px-4 rounded-xl font-black text-xs tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer border ${
               hideHoldings 
                 ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-md' 
@@ -258,7 +223,7 @@ export default function ResultCardModal({ roastData, onClose }) {
         <div className="overflow-hidden rounded-3xl border-2 border-slate-800/90 shadow-2xl relative">
           <div 
             ref={cardRef} 
-            className={`w-full ${activeThemeObj.class} p-4 sm:p-6 space-y-4 relative overflow-hidden text-slate-100 font-sans min-h-[300px] flex flex-col justify-between transition-all duration-500`}
+            className={`w-full ${activeThemeObj.class} p-5 sm:p-8 space-y-5 relative overflow-hidden text-slate-100 font-sans min-h-[380px] flex flex-col justify-between transition-all duration-500`}
           >
             {/* Faint Glowing Chart Trend Line in Background */}
             <div className="absolute inset-0 pointer-events-none opacity-20">
@@ -299,7 +264,7 @@ export default function ResultCardModal({ roastData, onClose }) {
                 
                 {/* MASSIVE SCORE HERO TEXT */}
                 <div>
-                  <h1 className={`text-3xl sm:text-5xl font-black tracking-tight leading-none ${
+                  <h1 className={`text-3xl sm:text-6xl font-black tracking-tight leading-none ${
                     isProfitable 
                       ? 'text-emerald-400 drop-shadow-[0_0_20px_rgba(52,211,153,0.4)]' 
                       : 'text-pink-500 drop-shadow-[0_0_20px_rgba(236,72,153,0.4)]'
@@ -362,8 +327,8 @@ export default function ResultCardModal({ roastData, onClose }) {
               </div>
 
               {/* RIGHT COLUMN: 100% TRANSPARENT PEDRO RACCOON NATIVE CHARACTER ART */}
-              <div className="col-span-5 flex justify-end items-center relative min-h-[170px]">
-                <div className="w-full max-w-[180px] h-[170px] sm:h-[190px] relative flex items-center justify-center">
+              <div className="col-span-5 flex justify-end items-center relative min-h-[200px]">
+                <div className="w-full max-w-[200px] h-[200px] sm:h-[240px] relative flex items-center justify-center">
                   {/* Glowing Ambient Aura Behind Pedro */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-2xl pointer-events-none" />
                   
@@ -387,7 +352,7 @@ export default function ResultCardModal({ roastData, onClose }) {
                 <div className="p-1 bg-white rounded-xl shrink-0">
                   <QRCodeSVG 
                     value="https://t.me/howdownbadareyoubot" 
-                    size={46} 
+                    size={42} 
                     bgColor="#ffffff" 
                     fgColor="#090a0f" 
                     level="L" 
@@ -416,32 +381,16 @@ export default function ResultCardModal({ roastData, onClose }) {
         </div>
         {/* ---------------- END REFERENCE MATCHED CANVAS ---------------- */}
 
-        {/* Toast notification */}
-        {shareToast && (
-          <div className="px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-cyan-300 text-center animate-fade-in">
-            {shareToast}
-          </div>
-        )}
-
         {/* Modal Action Buttons */}
-        <div className="grid grid-cols-2 gap-2.5 pt-1">
-
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+          
           <button
             onClick={handlePostToXWithImage}
             disabled={isGenerating}
-            className="px-4 py-3 rounded-2xl bg-black hover:bg-slate-900 border border-slate-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md disabled:opacity-50"
+            className="px-4 py-3 rounded-2xl bg-black hover:bg-slate-900 border border-slate-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
           >
-            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4 text-pink-400" />}
-            <span>POST ON X 🐦</span>
-          </button>
-
-          <button
-            onClick={handleShareToTelegramStory}
-            disabled={isGenerating}
-            className="px-4 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all cursor-pointer disabled:opacity-50"
-          >
-            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
-            <span>TELEGRAM STATUS ✈️</span>
+            <Share2 className="w-4 h-4 text-pink-400" />
+            <span>POST CARD ON X 🐦</span>
           </button>
 
           <button
@@ -450,9 +399,15 @@ export default function ResultCardModal({ roastData, onClose }) {
             className="px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
           >
             {copySuccess ? (
-              <><Check className="w-4 h-4 text-emerald-400" /><span>COPIED!</span></>
+              <>
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span>COPIED TO CLIPBOARD!</span>
+              </>
             ) : (
-              <><Copy className="w-4 h-4 text-cyan-400" /><span>COPY IMAGE 📋</span></>
+              <>
+                <Copy className="w-4 h-4 text-cyan-400" />
+                <span>COPY CARD IMAGE 📋</span>
+              </>
             )}
           </button>
 
@@ -462,11 +417,20 @@ export default function ResultCardModal({ roastData, onClose }) {
             className="px-4 py-3 rounded-2xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-pink-600/30 transition-all cursor-pointer disabled:opacity-50"
           >
             {isGenerating ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /><span>Generating...</span></>
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Generating...</span>
+              </>
             ) : downloadSuccess ? (
-              <><Check className="w-4 h-4 text-emerald-400" /><span>SAVED!</span></>
+              <>
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span>SAVED CARD!</span>
+              </>
             ) : (
-              <><Download className="w-4 h-4" /><span>DOWNLOAD 🖼️</span></>
+              <>
+                <Download className="w-4 h-4" />
+                <span>DOWNLOAD CARD 🖼️</span>
+              </>
             )}
           </button>
 
