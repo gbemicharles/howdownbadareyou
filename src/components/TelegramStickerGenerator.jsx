@@ -202,11 +202,11 @@ export default function TelegramStickerGenerator({ roastData }) {
 
                 {/* 100% Inline Base64 Pedro Raccoon Character */}
                 <div className="col-span-5 flex justify-end items-center relative">
-                  <div className="w-36 h-36 relative flex items-center justify-center">
+                  <div className="w-36 h-36 relative flex items-center justify-center filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)]">
                     <img 
                       src={pedroImgDataUri} 
                       alt={mascot.title}
-                      className="w-full h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] scale-125"
+                      className="w-full h-full object-contain pointer-events-none"
                     />
                   </div>
                 </div>
