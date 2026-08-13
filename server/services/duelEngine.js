@@ -32,7 +32,7 @@ export function compareWalletsForDuel(walletAData, walletBData) {
       winner = 'B';
       loser = 'A';
     } else if (pnlA <= pnlB) {
-      // Lower P&L USD wins (worse loss)
+      // Lower P&L USD wins (worse loss / smaller profit)
       winner = 'A';
       loser = 'B';
     } else {
@@ -44,8 +44,15 @@ export function compareWalletsForDuel(walletAData, walletBData) {
   const winnerData = winner === 'A' ? walletAData : walletBData;
   const loserData = loser === 'A' ? walletAData : walletBData;
 
-  const winnerAddrShort = `${winnerData.walletAddress.slice(0, 6)}...${winnerData.walletAddress.slice(-4)}`;
-  const loserAddrShort = `${loserData.walletAddress.slice(0, 6)}...${loserData.walletAddress.slice(-4)}`;
+  const formatAddrShort = (addr) => {
+    if (!addr) return 'TON Wallet';
+    if (addr.toLowerCase().endsWith('.ton')) return addr;
+    if (addr.length <= 12) return addr;
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  const winnerAddrShort = formatAddrShort(winnerData.walletAddress);
+  const loserAddrShort = formatAddrShort(loserData.walletAddress);
 
   const winnerPnlPct = Math.round(winnerData.estimatedPnlPercent || 0);
   const loserPnlPct = Math.round(loserData.estimatedPnlPercent || 0);
@@ -74,11 +81,8 @@ export function compareWalletsForDuel(walletAData, walletBData) {
   return {
     winner,
     loser,
-    scoreDiff,
     walletAData,
     walletBData,
-    winnerData,
-    loserData,
     battleCommentary,
     tweetText
   };

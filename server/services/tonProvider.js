@@ -156,7 +156,11 @@ export function parseTonAddressToRaw(address) {
 export function isValidTonAddress(address) {
   if (!address || typeof address !== 'string') return false;
   const cleaned = sanitizeTonAddress(address);
-  if (cleaned.length < 8) return false;
+  if (cleaned.length < 3) return false;
+
+  if (cleaned.toLowerCase().endsWith('.ton')) {
+    return true;
+  }
 
   if (Object.values(DEMO_WALLETS).some(d => d.address.toLowerCase() === cleaned.toLowerCase())) {
     return true;
@@ -280,7 +284,7 @@ async function getDexPriceMap(tonPriceUsd = 1.35) {
 }
 
 /**
- * Fetch raw live blockchain data for a TON wallet address
+ * Fetch raw live blockchain data for a TON wallet address or TON DNS domain
  */
 export async function getWalletRawData(address) {
   const cleaned = sanitizeTonAddress(address);
@@ -299,15 +303,30 @@ export async function getWalletRawData(address) {
     }
   }
 
-  const rawAddr = parseTonAddressToRaw(cleaned) || cleaned;
+  let rawAddr = parseTonAddressToRaw(cleaned) || cleaned;
 
-  // Query live TON API, Staking Pools, Toncenter v3, and DEX price feeds concurrently
+  // AUTOMATIC TON DNS RESOLUTION FOR .ton DOMAINS (e.g. gusgus.ton, damx.ton, gbemicharles.ton)
+  if (cleaned.toLowerCase().endsWith('.ton')) {
+    try {
+      const dnsRes = await fetch(`https://tonapi.io/v2/accounts/${encodeURIComponent(cleaned)}`);
+      if (dnsRes.ok) {
+        const dnsData = await dnsRes.json();
+        if (dnsData.address) {
+          rawAddr = dnsData.address;
+        }
+      }
+    } catch (e) {
+      console.warn('[TON Provider] DNS resolution failed for:', cleaned, e);
+    }
+  }
+
+  // Query live TON API, Staking Pools, Toncenter v3, and DEX price feeds concurrently using resolved rawAddr
   const [accRes, jetRes, rateRes, evRes, stakRes, toncenterRes] = await Promise.all([
-    fetch(`https://tonapi.io/v2/accounts/${rawAddr}`).catch(() => null),
-    fetch(`https://tonapi.io/v2/accounts/${rawAddr}/jettons?currencies=usd`).catch(() => null),
+    fetch(`https://tonapi.io/v2/accounts/${encodeURIComponent(rawAddr)}`).catch(() => null),
+    fetch(`https://tonapi.io/v2/accounts/${encodeURIComponent(rawAddr)}/jettons?currencies=usd`).catch(() => null),
     fetch(`https://tonapi.io/v2/rates?tokens=ton&currencies=usd`).catch(() => null),
-    fetch(`https://tonapi.io/v2/accounts/${rawAddr}/events?limit=100`).catch(() => null),
-    fetch(`https://tonapi.io/v2/staking/nominator/${rawAddr}/pools`).catch(() => null),
+    fetch(`https://tonapi.io/v2/accounts/${encodeURIComponent(rawAddr)}/events?limit=100`).catch(() => null),
+    fetch(`https://tonapi.io/v2/staking/nominator/${encodeURIComponent(rawAddr)}/pools`).catch(() => null),
     fetch(`https://toncenter.com/api/v3/jetton/wallets?owner_address=${encodeURIComponent(rawAddr)}&limit=500`).catch(() => null)
   ]);
 
@@ -502,7 +521,7 @@ export async function getWalletRawData(address) {
   }
 
   return {
-    address: cleaned,
+    address: cleaned, // Preserve original DNS address (e.g. gusgus.ton)
     rawAddress: rawAddr,
     isDemo: false,
     tonBalance: totalTonBalance,
