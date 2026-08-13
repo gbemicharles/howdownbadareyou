@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
 import { inlineContainerImages } from '../utils/imagePreloader.js';
+import { getPedroImageSrc, preloadPedroImages } from '../utils/pedroPreloader.js';
 import { triggerHaptic } from '../utils/haptics.js';
 import { X, Swords, Trophy, Skull, Share2, Loader2, Sparkles, Crown, Download, Copy, Check, Shuffle, ArrowLeft } from 'lucide-react';
 import { compareWalletsForDuel } from '../../server/services/duelEngine';
@@ -11,18 +12,7 @@ import { calculatePersonalityAndScores } from '../../server/services/personality
 
 const PEDRO_KEYS = ['rockstar', 'rekt', 'copium', 'wizard', 'clown', 'diamond', 'rocket'];
 
-const PEDRO_CHARACTER_ARTS = {
-  rekt: '/assets/pedro/nobg/pedro_rekt.png',
-  copium: '/assets/pedro/nobg/pedro_copium.png',
-  wizard: '/assets/pedro/nobg/pedro_wizard.png',
-  clown: '/assets/pedro/nobg/pedro_clown.png',
-  diamond: '/assets/pedro/nobg/pedro_diamond.png',
-  rockstar: '/assets/pedro/nobg/pedro_rockstar.png',
-  rocket: '/assets/pedro/nobg/pedro_rocket.png'
-};
-
 export default function WalletDuelModal({ initialWalletA = '', onClose }) {
-  // Empty default inputs - no hardcoded demo accounts
   const [addressA, setAddressA] = useState(initialWalletA || '');
   const [addressB, setAddressB] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -34,8 +24,13 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
   const [pedroKeyIndex, setPedroKeyIndex] = useState(0);
   const [isShuffling, setIsShuffling] = useState(false);
+  const [pedroImagesLoaded, setPedroImagesLoaded] = useState(false);
 
   const duelCardRef = useRef(null);
+
+  useEffect(() => {
+    preloadPedroImages().then(() => setPedroImagesLoaded(true));
+  }, []);
 
   const handleInputFocus = (e) => {
     const el = e.target;
@@ -53,7 +48,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
   };
 
   const currentPedroKey = PEDRO_KEYS[pedroKeyIndex] || 'rockstar';
-  const currentPedroImg = PEDRO_CHARACTER_ARTS[currentPedroKey] || PEDRO_CHARACTER_ARTS.rockstar;
+  const currentPedroImg = getPedroImageSrc(currentPedroKey);
 
   const fetchWalletRoastData = async (addr) => {
     try {
@@ -69,7 +64,6 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
       // Fallback to client-side pipeline
     }
 
-    // Client-side fallback pipeline
     const rawData = await getWalletRawData(addr.trim());
     const analysis = analyzeWallet(rawData);
     const scoreData = calculatePersonalityAndScores(analysis);
@@ -119,7 +113,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
     try {
       setIsGeneratingImg(true);
 
-      // Pre-inline Pedro image to Base64 before rendering to canvas!
+      // Pre-inline images to Base64 before rendering canvas
       await inlineContainerImages(duelCardRef.current);
 
       const blob = await toBlob(duelCardRef.current, {
@@ -144,8 +138,6 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
 
     try {
       setIsGeneratingImg(true);
-
-      // Pre-inline Pedro image to Base64 before rendering to canvas!
       await inlineContainerImages(duelCardRef.current);
 
       const blob = await toBlob(duelCardRef.current, {
@@ -187,20 +179,20 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
   }).format(num || 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-lg overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-start pt-16 sm:pt-10 pb-16 px-3 sm:px-4 bg-black/90 backdrop-blur-lg overflow-y-auto min-h-screen">
       
-      <div className="max-w-3xl w-full bg-slate-950/95 border border-purple-500/30 rounded-3xl p-4 sm:p-7 space-y-4 relative shadow-2xl my-6 pb-20 sm:pb-7">
+      <div className="max-w-3xl w-full bg-slate-950/95 border border-purple-500/30 rounded-3xl p-4 sm:p-7 space-y-4 relative shadow-2xl mt-4 sm:mt-6 mb-16 pb-20 sm:pb-7">
         
-        {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        {/* Modal Header with Safe Margin & Prominent Clickable Back Button */}
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3 pt-1">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-600 via-purple-600 to-cyan-500 p-0.5 shadow-lg shadow-purple-500/30">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-600 via-purple-600 to-cyan-500 p-0.5 shadow-lg shadow-purple-500/30 shrink-0">
               <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
                 <Swords className="w-5 h-5 text-pink-400 animate-pulse" />
               </div>
             </div>
             <div>
-              <h3 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
+              <h3 className="text-base sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
                 WALLET DUEL BATTLE ⚔️
               </h3>
               <p className="text-[11px] sm:text-xs font-bold text-slate-400">
@@ -210,10 +202,14 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
           </div>
 
           <button
-            onClick={onClose}
-            className="p-2 rounded-xl bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            onClick={() => {
+              triggerHaptic('selection');
+              onClose();
+            }}
+            className="px-3.5 py-2 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/40 text-pink-300 font-extrabold text-xs flex items-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95 shrink-0"
           >
-            <X className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 text-pink-400" />
+            <span>CLOSE ✕</span>
           </button>
         </div>
 
@@ -429,6 +425,7 @@ export default function WalletDuelModal({ initialWalletA = '', onClose }) {
                       <img 
                         src={currentPedroImg} 
                         alt="Pedro Raccoon Battle Referee" 
+                        crossOrigin="anonymous"
                         className={`w-full h-full object-contain drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] scale-110 transition-all duration-300 ${
                           isShuffling ? 'scale-90 opacity-40 rotate-6' : 'scale-110 opacity-100 rotate-0'
                         }`}

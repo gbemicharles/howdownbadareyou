@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
 import { inlineContainerImages } from '../utils/imagePreloader.js';
+import { getPedroImageSrc, preloadPedroImages } from '../utils/pedroPreloader.js';
 import { triggerHaptic } from '../utils/haptics.js';
 import { Download, Check, Loader2, Copy, Smile, Shuffle, ExternalLink } from 'lucide-react';
 
@@ -10,37 +11,30 @@ const PEDRO_KEYS = ['rockstar', 'rekt', 'copium', 'wizard', 'clown', 'diamond', 
 const PEDRO_CHARACTER_ARTS = {
   rockstar: {
     title: "🎤 Rockstar Pedro",
-    image: "/assets/pedro/nobg/pedro_rockstar.png",
     quote: "Singing through -90% Down Bad losses!"
   },
   rekt: {
     title: "😭 Devastated Rekt Pedro",
-    image: "/assets/pedro/nobg/pedro_rekt.png",
     quote: "100% Down Bad & Liquidated!"
   },
   copium: {
     title: "🧪 Copium Inhaler Pedro",
-    image: "/assets/pedro/nobg/pedro_copium.png",
     quote: "Inhaling 99% Pure Down Bad Copium!"
   },
   wizard: {
     title: "🔮 Wizard Astrology Pedro",
-    image: "/assets/pedro/nobg/pedro_wizard.png",
     quote: "Foreseeing ATH Recovery from Down Bad!"
   },
   clown: {
     title: "🤡 Clown Circus Pedro",
-    image: "/assets/pedro/nobg/pedro_clown.png",
     quote: "Honk Honk Down Bad Degen Circus!"
   },
   diamond: {
     title: "💎 Diamond Hands Pedro",
-    image: "/assets/pedro/nobg/pedro_diamond.png",
     quote: "Holding Heavy Down Bad Bags!"
   },
   rocket: {
     title: "🚀 Rocket Blast Pedro",
-    image: "/assets/pedro/nobg/pedro_rocket.png",
     quote: "Surviving the Down Bad Trenches!"
   }
 };
@@ -56,6 +50,7 @@ export default function TelegramStickerGenerator({ roastData }) {
   const { walletAddress, downBadScore, isProfitable, estimatedPnlPercent, personality, roasts } = roastData;
 
   useEffect(() => {
+    preloadPedroImages();
     handleRandomizeSticker();
   }, []);
 
@@ -69,6 +64,7 @@ export default function TelegramStickerGenerator({ roastData }) {
 
   const activeKey = PEDRO_KEYS[pedroKeyIndex] || 'rockstar';
   const mascot = PEDRO_CHARACTER_ARTS[activeKey] || PEDRO_CHARACTER_ARTS.rockstar;
+  const pedroImgSrc = getPedroImageSrc(activeKey);
 
   const handleSaveAndOpenStickersBot = async () => {
     if (!stickerRef.current || isGenerating) return;
@@ -76,7 +72,6 @@ export default function TelegramStickerGenerator({ roastData }) {
     try {
       setIsGenerating(true);
 
-      // Pre-inline Pedro image to base64 before html-to-image render!
       await inlineContainerImages(stickerRef.current);
 
       const blob = await toBlob(stickerRef.current, {
@@ -95,7 +90,6 @@ export default function TelegramStickerGenerator({ roastData }) {
       setIsGenerating(false);
     }
 
-    // Open @Stickers bot
     const tg = window.Telegram?.WebApp;
     if (tg?.openTelegramLink) {
       tg.openTelegramLink('https://t.me/Stickers');
@@ -111,7 +105,6 @@ export default function TelegramStickerGenerator({ roastData }) {
     try {
       setIsGenerating(true);
 
-      // Pre-inline Pedro image to base64 before html-to-image render!
       await inlineContainerImages(stickerRef.current);
 
       const blob = await toBlob(stickerRef.current, {
@@ -205,8 +198,9 @@ export default function TelegramStickerGenerator({ roastData }) {
               <div className="col-span-5 flex justify-end items-center relative">
                 <div className="w-36 h-36 relative flex items-center justify-center">
                   <img 
-                    src={mascot.image} 
+                    src={pedroImgSrc} 
                     alt={mascot.title}
+                    crossOrigin="anonymous"
                     className="w-full h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] scale-125"
                   />
                 </div>

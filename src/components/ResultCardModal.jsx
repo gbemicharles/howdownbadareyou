@@ -2,11 +2,12 @@ import React, { useRef, useState, useEffect } from 'react';
 import { toBlob } from 'html-to-image';
 import { saveImageBlob } from '../utils/mobileDownload.js';
 import { inlineContainerImages } from '../utils/imagePreloader.js';
+import { getPedroImageSrc, preloadPedroImages } from '../utils/pedroPreloader.js';
 import { triggerHaptic } from '../utils/haptics.js';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
   X, Download, Share2, Copy, Sparkles, Check, Loader2, 
-  Flame, Award, ShieldCheck, Zap, Shuffle, Eye, EyeOff
+  Flame, Award, ShieldCheck, Zap, Shuffle, Eye, EyeOff, ArrowLeft
 } from 'lucide-react';
 
 const PRESET_BACKGROUNDS = [
@@ -19,16 +20,6 @@ const PRESET_BACKGROUNDS = [
 ];
 
 const PEDRO_KEYS = ['rockstar', 'rekt', 'copium', 'wizard', 'clown', 'diamond', 'rocket'];
-
-const PEDRO_CHARACTER_ARTS = {
-  rekt: '/assets/pedro/nobg/pedro_rekt.png',
-  copium: '/assets/pedro/nobg/pedro_copium.png',
-  wizard: '/assets/pedro/nobg/pedro_wizard.png',
-  clown: '/assets/pedro/nobg/pedro_clown.png',
-  diamond: '/assets/pedro/nobg/pedro_diamond.png',
-  rockstar: '/assets/pedro/nobg/pedro_rockstar.png',
-  rocket: '/assets/pedro/nobg/pedro_rocket.png'
-};
 
 export default function ResultCardModal({ roastData, onClose }) {
   const cardRef = useRef(null);
@@ -58,8 +49,8 @@ export default function ResultCardModal({ roastData, onClose }) {
     roasts
   } = roastData;
 
-  // Auto-randomize theme and Pedro pose on modal open
   useEffect(() => {
+    preloadPedroImages();
     handleRandomize();
   }, []);
 
@@ -78,7 +69,7 @@ export default function ResultCardModal({ roastData, onClose }) {
 
   const activeThemeObj = PRESET_BACKGROUNDS[themeIndex] || PRESET_BACKGROUNDS[0];
   const currentPedroKey = PEDRO_KEYS[pedroKeyIndex] || 'rockstar';
-  const currentPedroImg = PEDRO_CHARACTER_ARTS[currentPedroKey] || PEDRO_CHARACTER_ARTS.rockstar;
+  const currentPedroImg = getPedroImageSrc(currentPedroKey);
 
   const handleDownloadCard = async () => {
     if (!cardRef.current || isGenerating) return;
@@ -86,8 +77,6 @@ export default function ResultCardModal({ roastData, onClose }) {
 
     try {
       setIsGenerating(true);
-
-      // Pre-inline Pedro image to Base64 before html-to-image rendering!
       await inlineContainerImages(cardRef.current);
 
       const blob = await toBlob(cardRef.current, {
@@ -112,8 +101,6 @@ export default function ResultCardModal({ roastData, onClose }) {
 
     try {
       setIsGenerating(true);
-
-      // Pre-inline Pedro image to Base64 before html-to-image rendering!
       await inlineContainerImages(cardRef.current);
 
       const blob = await toBlob(cardRef.current, {
@@ -158,21 +145,21 @@ export default function ResultCardModal({ roastData, onClose }) {
   const formatUsd = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num || 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-lg overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-start pt-16 sm:pt-10 pb-16 px-3 sm:px-4 bg-black/90 backdrop-blur-lg overflow-y-auto min-h-screen">
       
-      <div className="max-w-3xl w-full bg-slate-950/95 border border-pink-500/30 rounded-3xl p-4 sm:p-7 space-y-4 relative shadow-2xl my-6 pb-20 sm:pb-7">
+      <div className="max-w-3xl w-full bg-slate-950/95 border border-pink-500/30 rounded-3xl p-4 sm:p-7 space-y-4 relative shadow-2xl mt-4 sm:mt-6 mb-16 pb-20 sm:pb-7">
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3 pt-1">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-600 via-purple-600 to-cyan-400 p-0.5 shadow-lg shadow-pink-600/30">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-600 via-purple-600 to-cyan-400 p-0.5 shadow-lg shadow-pink-600/30 shrink-0">
               <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
                 <Flame className="w-5 h-5 text-pink-400 animate-pulse" />
               </div>
             </div>
             <div>
-              <h3 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
-                HOW DOWN BAD ARE YOU RESULT CARD 🖼️💀
+              <h3 className="text-base sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
+                DIAGNOSIS RESULT CARD 🖼️💀
               </h3>
               <p className="text-[11px] sm:text-xs font-bold text-slate-400">
                 Export and share your official TON wallet diagnosis card!
@@ -181,17 +168,20 @@ export default function ResultCardModal({ roastData, onClose }) {
           </div>
 
           <button
-            onClick={onClose}
-            className="p-2 rounded-xl bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            onClick={() => {
+              triggerHaptic('selection');
+              onClose();
+            }}
+            className="px-3.5 py-2 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/40 text-pink-300 font-extrabold text-xs flex items-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95 shrink-0"
           >
-            <X className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 text-pink-400" />
+            <span>CLOSE ✕</span>
           </button>
         </div>
 
         {/* CONTROLS BAR: RANDOMIZE BACKGROUND & HIDE HOLDINGS PRIVACY TOGGLE */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-900/70 p-3 rounded-2xl border border-slate-800">
           
-          {/* Randomize Background Button */}
           <button
             onClick={handleRandomize}
             disabled={isShuffling}
@@ -201,7 +191,6 @@ export default function ResultCardModal({ roastData, onClose }) {
             <span>RANDOMIZE BACKGROUND 🎲</span>
           </button>
 
-          {/* Hide Holdings Privacy Toggle Button */}
           <button
             onClick={() => {
               triggerHaptic('selection');
@@ -259,10 +248,9 @@ export default function ResultCardModal({ roastData, onClose }) {
             {/* MAIN TWO-COLUMN BODY: LEFT DATA & HERO SCORE, RIGHT PEDRO NATIVE ARTWORK */}
             <div className="grid grid-cols-12 gap-4 items-center relative z-10 my-auto">
               
-              {/* LEFT COLUMN: HERO SCORE & KEY METRICS (Occupies 7 cols) */}
+              {/* LEFT COLUMN: HERO SCORE & KEY METRICS */}
               <div className="col-span-7 space-y-3">
                 
-                {/* MASSIVE SCORE HERO TEXT */}
                 <div>
                   <h1 className={`text-3xl sm:text-6xl font-black tracking-tight leading-none ${
                     isProfitable 
@@ -279,10 +267,9 @@ export default function ResultCardModal({ roastData, onClose }) {
                   <span>{personality.title}</span>
                 </div>
 
-                {/* Metrics Summary List (Holdings / Est PnL / Best Bag / Rekt Bag) */}
+                {/* Metrics Summary List */}
                 <div className="space-y-1 font-mono text-xs text-slate-300 pt-1">
                   
-                  {/* Holdings with Hide Holdings Privacy Support */}
                   <div className="flex items-center gap-2">
                     <span className="text-slate-400 uppercase font-black text-[10px] w-20">Holdings:</span>
                     <strong className="text-white font-extrabold">
@@ -290,7 +277,6 @@ export default function ResultCardModal({ roastData, onClose }) {
                     </strong>
                   </div>
 
-                  {/* Est P&L with Hide Holdings Privacy Support */}
                   <div className="flex items-center gap-2">
                     <span className="text-slate-400 uppercase font-black text-[10px] w-20">Est. P&L:</span>
                     <strong className={`font-extrabold ${estimatedPnlUsd >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -298,7 +284,6 @@ export default function ResultCardModal({ roastData, onClose }) {
                     </strong>
                   </div>
 
-                  {/* Best Bag (Actual Held Token) */}
                   <div className="flex items-center gap-2">
                     <span className="text-slate-400 uppercase font-black text-[10px] w-20">Best Bag:</span>
                     <strong className="text-emerald-400 font-extrabold">
@@ -310,7 +295,6 @@ export default function ResultCardModal({ roastData, onClose }) {
                     </strong>
                   </div>
 
-                  {/* Rekt Bag (Strictly Actual Held Jetton, Never Fake Token or GRAM) */}
                   <div className="flex items-center gap-2">
                     <span className="text-slate-400 uppercase font-black text-[10px] w-20">Rekt Bag:</span>
                     <strong className="text-pink-400 font-extrabold">
@@ -329,12 +313,12 @@ export default function ResultCardModal({ roastData, onClose }) {
               {/* RIGHT COLUMN: 100% TRANSPARENT PEDRO RACCOON NATIVE CHARACTER ART */}
               <div className="col-span-5 flex justify-end items-center relative min-h-[200px]">
                 <div className="w-full max-w-[200px] h-[200px] sm:h-[240px] relative flex items-center justify-center">
-                  {/* Glowing Ambient Aura Behind Pedro */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-2xl pointer-events-none" />
                   
                   <img 
                     src={currentPedroImg} 
                     alt="Pedro Raccoon Character" 
+                    crossOrigin="anonymous"
                     className={`w-full h-full object-contain drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)] scale-125 transition-all duration-500 ${
                       isShuffling ? 'scale-90 opacity-40 rotate-6' : 'scale-125 opacity-100 rotate-0'
                     }`}
@@ -344,10 +328,9 @@ export default function ResultCardModal({ roastData, onClose }) {
 
             </div>
 
-            {/* BOTTOM FOOTER: QR CODE ON LEFT & TMA BOT WATERMARK */}
+            {/* BOTTOM FOOTER */}
             <div className="flex items-end justify-between border-t border-slate-800/80 pt-3 relative z-10 font-mono">
               
-              {/* Bottom Left: QR Code + Referral / TMA Callout Box */}
               <div className="flex items-center gap-3 bg-slate-950/90 p-2 rounded-2xl border border-slate-800 shadow-xl">
                 <div className="p-1 bg-white rounded-xl shrink-0">
                   <QRCodeSVG 
@@ -365,7 +348,6 @@ export default function ResultCardModal({ roastData, onClose }) {
                 </div>
               </div>
 
-              {/* Bottom Right Watermark */}
               <div className="text-right space-y-0.5">
                 <span className="text-[10px] font-black text-pink-400 uppercase tracking-widest block">
                   MADE BY GBEMICHARLES
